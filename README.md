@@ -91,16 +91,13 @@ The frontend will run on http://localhost:5173
 
 ### Voice Input
 1. Click the microphone button to start recording
-2. Speak your query (e.g., "What is the status of flight UA2406?")
+2. Speak your query (e.g., "What is the status of flight UA1214?")
 3. Click the microphone button again to stop and process
 
 ### Wake Word (Optional)
 1. Enable wake word detection in the UI
 2. Say "Jarvis", "Alexa", or "Hey Google" to activate
 3. The assistant will automatically start listening
-
-### Text Input
-Type your query in the text input field and press Send
 
 ## Example Queries
 
@@ -133,7 +130,6 @@ Based on the actual United Airlines database:
 - `start_recording` - Begin audio recording
 - `audio_chunk` - Send audio data
 - `stop_recording` - End recording and process
-- `text_query` - Send text query
 - `ping` - Keep-alive
 
 #### Server to Client:

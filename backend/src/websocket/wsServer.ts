@@ -118,58 +118,6 @@ export class WSServer {
               }
               break;
 
-            case 'text_query':
-              if (message.text) {
-                ws.send(JSON.stringify({ type: 'processing_started' }));
-
-                try {
-                  const result = await this.audioProcessor.processTextQuery(
-                    message.text
-                  );
-
-                  ws.send(
-                    JSON.stringify({
-                      type: 'intent',
-                      data: result.intent,
-                    })
-                  );
-
-                  ws.send(
-                    JSON.stringify({
-                      type: 'response',
-                      data: result.response,
-                    })
-                  );
-
-                  if (result.audioStream) {
-                    const audioChunks: Buffer[] = [];
-                    result.audioStream.on('data', (chunk: Buffer) => {
-                      audioChunks.push(chunk);
-                    });
-
-                    result.audioStream.on('end', () => {
-                      const audioBuffer = Buffer.concat(audioChunks);
-                      ws.send(
-                        JSON.stringify({
-                          type: 'audio_response',
-                          audio: audioBuffer.toString('base64'),
-                        })
-                      );
-                    });
-                  }
-
-                  ws.send(JSON.stringify({ type: 'processing_complete' }));
-                } catch (error) {
-                  console.error('Processing error:', error);
-                  ws.send(
-                    JSON.stringify({
-                      type: 'error',
-                      message: 'Failed to process query',
-                    })
-                  );
-                }
-              }
-              break;
 
             case 'ping':
               ws.send(JSON.stringify({ type: 'pong' }));

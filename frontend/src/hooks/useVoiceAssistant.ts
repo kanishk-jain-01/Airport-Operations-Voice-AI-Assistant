@@ -171,28 +171,9 @@ export const useVoiceAssistant = () => {
     }
   }, []);
 
-  const sendTextQuery = useCallback((text: string) => {
-    if (!wsClient.current) {
-      setState(prev => ({ ...prev, error: 'WebSocket not connected' }));
-      return;
-    }
-
-    setState(prev => ({
-      ...prev,
-      error: null,
-      transcription: text,
-      response: '',
-      intent: null,
-      isProcessing: true,
-    }));
-
-    wsClient.current.send('text_query', { text });
-  }, []);
-
   return {
     ...state,
     startListening,
     stopListening,
-    sendTextQuery,
   };
 };

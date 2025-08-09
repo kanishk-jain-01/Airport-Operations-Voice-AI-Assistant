@@ -1,10 +1,8 @@
-import { useState } from 'react';
-import { Mic, MicOff, Send, Loader2, AlertCircle, Plane } from 'lucide-react';
+import { Mic, MicOff, Loader2, AlertCircle, Plane } from 'lucide-react';
 import { useVoiceAssistant } from './hooks/useVoiceAssistant';
 import { cn } from './lib/utils';
 
 function App() {
-  const [textInput, setTextInput] = useState('');
   const {
     isListening,
     isProcessing,
@@ -15,16 +13,7 @@ function App() {
     isConnected,
     startListening,
     stopListening,
-    sendTextQuery,
   } = useVoiceAssistant();
-
-  const handleTextSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (textInput.trim()) {
-      sendTextQuery(textInput);
-      setTextInput('');
-    }
-  };
 
   const toggleListening = () => {
     if (isListening) {
@@ -45,7 +34,7 @@ function App() {
             </h1>
           </div>
           <p className='text-slate-400'>
-            Ask about United Airlines flights using voice or text
+            Ask about United Airlines flights using voice commands
           </p>
         </header>
 
@@ -101,36 +90,6 @@ function App() {
             </p>
           </div>
 
-          <div className='bg-slate-800/50 rounded-lg p-6 backdrop-blur-sm border border-slate-700'>
-            <h2 className='text-lg font-semibold mb-4'>Text Input</h2>
-
-            <form onSubmit={handleTextSubmit} className='flex gap-2'>
-              <input
-                type='text'
-                value={textInput}
-                onChange={e => setTextInput(e.target.value)}
-                placeholder='Ask about flights, gates, delays...'
-                disabled={isProcessing || !isConnected}
-                className='flex-1 px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg 
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                         disabled:opacity-50 disabled:cursor-not-allowed'
-              />
-              <button
-                type='submit'
-                disabled={isProcessing || !isConnected || !textInput.trim()}
-                className='px-6 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg font-medium
-                         disabled:opacity-50 disabled:cursor-not-allowed transition-colors
-                         flex items-center gap-2'
-              >
-                {isProcessing ? (
-                  <Loader2 className='w-5 h-5 animate-spin' />
-                ) : (
-                  <Send className='w-5 h-5' />
-                )}
-                Send
-              </button>
-            </form>
-          </div>
 
           {error && (
             <div className='bg-red-900/20 border border-red-500/50 rounded-lg p-4 backdrop-blur-sm'>

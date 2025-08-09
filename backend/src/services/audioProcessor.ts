@@ -74,40 +74,4 @@ export class AudioProcessor {
     }
   }
 
-  async processTextQuery(text: string): Promise<{
-    intent: any;
-    queryResult: any[];
-    response: string;
-    audioStream?: any;
-  }> {
-    const intent = await this.openaiService.extractIntent(text);
-    console.log('Intent:', intent);
-
-    let queryResult: any[] = [];
-    if (intent.sql) {
-      try {
-        queryResult = await db.query(intent.sql);
-        console.log('Query result:', queryResult);
-      } catch (dbError) {
-        console.error('Database query error:', dbError);
-        queryResult = [];
-      }
-    }
-
-    const response = await this.openaiService.generateResponse(
-      queryResult,
-      text,
-      intent
-    );
-    console.log('Response:', response);
-
-    const audioStream = await this.openaiService.textToSpeech(response);
-
-    return {
-      intent,
-      queryResult,
-      response,
-      audioStream,
-    };
-  }
 }
