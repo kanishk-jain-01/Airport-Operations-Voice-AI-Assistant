@@ -21,7 +21,7 @@ export class WebSocketClient {
           resolve();
         };
 
-        this.ws.onmessage = (event) => {
+        this.ws.onmessage = event => {
           try {
             const message = JSON.parse(event.data);
             this.emit(message.type, message);
@@ -30,7 +30,7 @@ export class WebSocketClient {
           }
         };
 
-        this.ws.onerror = (error) => {
+        this.ws.onerror = error => {
           console.error('WebSocket error:', error);
           reject(error);
         };
@@ -48,8 +48,10 @@ export class WebSocketClient {
   private attemptReconnect(): void {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(`Reconnecting... Attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
-      
+      console.log(
+        `Reconnecting... Attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`
+      );
+
       setTimeout(() => {
         this.connect().catch(console.error);
       }, this.reconnectDelay * this.reconnectAttempts);

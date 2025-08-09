@@ -6,27 +6,30 @@ export class AudioRecorder {
 
   async initialize(): Promise<void> {
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({ 
+      this.stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
           sampleRate: 16000,
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-        } 
+        },
       });
 
       const options: MediaRecorderOptions = {
-        mimeType: 'audio/webm;codecs=opus'
+        mimeType: 'audio/webm;codecs=opus',
       };
 
-      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+      if (
+        options.mimeType &&
+        !MediaRecorder.isTypeSupported(options.mimeType)
+      ) {
         options.mimeType = 'audio/webm';
       }
 
       this.mediaRecorder = new MediaRecorder(this.stream, options);
 
-      this.mediaRecorder.ondataavailable = (event) => {
+      this.mediaRecorder.ondataavailable = event => {
         if (event.data.size > 0) {
           this.chunks.push(event.data);
           if (this.onDataCallback) {
@@ -38,7 +41,6 @@ export class AudioRecorder {
       this.mediaRecorder.onstop = () => {
         console.log('Recording stopped');
       };
-
     } catch (error) {
       console.error('Failed to initialize audio recorder:', error);
       throw error;
@@ -56,7 +58,7 @@ export class AudioRecorder {
   }
 
   stop(): Promise<Blob> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       if (!this.mediaRecorder) {
         throw new Error('Audio recorder not initialized');
       }

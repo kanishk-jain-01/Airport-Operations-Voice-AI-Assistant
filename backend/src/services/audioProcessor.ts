@@ -33,8 +33,9 @@ export class AudioProcessor {
 
     try {
       const audioBuffer = Buffer.concat(this.audioChunks);
-      
-      const transcription = await this.openaiService.transcribeAudio(audioBuffer);
+
+      const transcription =
+        await this.openaiService.transcribeAudio(audioBuffer);
       console.log('Transcription:', transcription);
 
       const intent = await this.openaiService.extractIntent(transcription);
@@ -65,7 +66,7 @@ export class AudioProcessor {
         intent,
         queryResult,
         response,
-        audioStream
+        audioStream,
       };
     } finally {
       this.isProcessing = false;
@@ -106,7 +107,7 @@ export class AudioProcessor {
       intent,
       queryResult,
       response,
-      audioStream
+      audioStream,
     };
   }
 }

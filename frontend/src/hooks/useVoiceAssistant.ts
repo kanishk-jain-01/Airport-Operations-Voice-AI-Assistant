@@ -42,25 +42,33 @@ export const useVoiceAssistant = () => {
         });
 
         wsClient.current.on('processing_started', () => {
-          setState(prev => ({ ...prev, isProcessing: true, isListening: false }));
+          setState(prev => ({
+            ...prev,
+            isProcessing: true,
+            isListening: false,
+          }));
         });
 
-        wsClient.current.on('transcription', (data) => {
+        wsClient.current.on('transcription', data => {
           setState(prev => ({ ...prev, transcription: data.data }));
         });
 
-        wsClient.current.on('intent', (data) => {
+        wsClient.current.on('intent', data => {
           setState(prev => ({ ...prev, intent: data.data }));
         });
 
-        wsClient.current.on('response', (data) => {
+        wsClient.current.on('response', data => {
           setState(prev => ({ ...prev, response: data.data }));
         });
 
-        wsClient.current.on('audio_response', async (data) => {
+        wsClient.current.on('audio_response', async data => {
           if (data.audio && audioContext.current) {
-            const audioData = Uint8Array.from(atob(data.audio), c => c.charCodeAt(0));
-            const audioBuffer = await audioContext.current.decodeAudioData(audioData.buffer);
+            const audioData = Uint8Array.from(atob(data.audio), c =>
+              c.charCodeAt(0)
+            );
+            const audioBuffer = await audioContext.current.decodeAudioData(
+              audioData.buffer
+            );
             const source = audioContext.current.createBufferSource();
             source.buffer = audioBuffer;
             source.connect(audioContext.current.destination);
@@ -72,19 +80,22 @@ export const useVoiceAssistant = () => {
           setState(prev => ({ ...prev, isProcessing: false }));
         });
 
-        wsClient.current.on('error', (data) => {
-          setState(prev => ({ 
-            ...prev, 
-            error: data.message, 
-            isProcessing: false, 
-            isListening: false 
+        wsClient.current.on('error', data => {
+          setState(prev => ({
+            ...prev,
+            error: data.message,
+            isProcessing: false,
+            isListening: false,
           }));
         });
 
         setState(prev => ({ ...prev, isConnected: true }));
       } catch (error) {
         console.error('Failed to initialize services:', error);
-        setState(prev => ({ ...prev, error: 'Failed to initialize voice assistant' }));
+        setState(prev => ({
+          ...prev,
+          error: 'Failed to initialize voice assistant',
+        }));
       }
     };
 
@@ -110,17 +121,17 @@ export const useVoiceAssistant = () => {
     }
 
     try {
-      setState(prev => ({ 
-        ...prev, 
-        error: null, 
-        transcription: '', 
-        response: '', 
-        intent: null 
+      setState(prev => ({
+        ...prev,
+        error: null,
+        transcription: '',
+        response: '',
+        intent: null,
       }));
 
       wsClient.current.send('start_recording');
-      
-      audioRecorder.current.onData((chunk) => {
+
+      audioRecorder.current.onData(chunk => {
         const reader = new FileReader();
         reader.onloadend = () => {
           if (reader.result && typeof reader.result === 'string') {
@@ -145,7 +156,7 @@ export const useVoiceAssistant = () => {
 
     try {
       const audioBlob = await audioRecorder.current.stop();
-      
+
       const reader = new FileReader();
       reader.onloadend = () => {
         if (reader.result && typeof reader.result === 'string') {
@@ -166,13 +177,13 @@ export const useVoiceAssistant = () => {
       return;
     }
 
-    setState(prev => ({ 
-      ...prev, 
-      error: null, 
-      transcription: text, 
-      response: '', 
+    setState(prev => ({
+      ...prev,
+      error: null,
+      transcription: text,
+      response: '',
       intent: null,
-      isProcessing: true 
+      isProcessing: true,
     }));
 
     wsClient.current.send('text_query', { text });

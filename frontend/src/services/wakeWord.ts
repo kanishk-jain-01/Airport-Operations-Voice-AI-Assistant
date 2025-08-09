@@ -1,4 +1,5 @@
-import { PorcupineWorker } from '@picovoice/porcupine-web';
+import { PorcupineWorker, BuiltInKeyword } from '@picovoice/porcupine-web';
+import type { PorcupineDetection } from '@picovoice/porcupine-web';
 import { WebVoiceProcessor } from '@picovoice/web-voice-processor';
 
 export class WakeWordDetector {
@@ -10,13 +11,19 @@ export class WakeWordDetector {
     try {
       this.porcupineWorker = await PorcupineWorker.create(
         accessKey,
-        ['jarvis', 'alexa', 'ok google', 'hey google'],
-        (detections: number[]) => {
-          if (detections.length > 0 && this.onWakeWordCallback) {
-            console.log('Wake word detected:', detections);
+        [
+          BuiltInKeyword.Jarvis,
+          BuiltInKeyword.Alexa,
+          BuiltInKeyword.OkayGoogle,
+          BuiltInKeyword.HeyGoogle,
+        ],
+        (detection: PorcupineDetection) => {
+          if (detection && this.onWakeWordCallback) {
+            console.log('Wake word detected:', detection);
             this.onWakeWordCallback();
           }
-        }
+        },
+        { publicPath: '/porcupine_params.pv', base64: '', forceWrite: false } // Default model
       );
     } catch (error) {
       console.error('Failed to initialize Porcupine:', error);

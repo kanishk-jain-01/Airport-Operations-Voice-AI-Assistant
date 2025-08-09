@@ -15,8 +15,9 @@ export const useWakeWord = (options: UseWakeWordOptions = {}) => {
 
   useEffect(() => {
     const initializeDetector = async () => {
-      const accessKey = options.accessKey || import.meta.env.VITE_PICOVOICE_ACCESS_KEY || '';
-      
+      const accessKey =
+        options.accessKey || import.meta.env.VITE_PICOVOICE_ACCESS_KEY || '';
+
       if (!accessKey) {
         setError('Picovoice access key not provided');
         return;
@@ -25,7 +26,7 @@ export const useWakeWord = (options: UseWakeWordOptions = {}) => {
       try {
         detectorRef.current = new WakeWordDetector();
         await detectorRef.current.initialize(accessKey);
-        
+
         if (options.onWakeWord) {
           detectorRef.current.onWakeWord(options.onWakeWord);
         }

@@ -13,11 +13,11 @@ const WS_PORT = 8080;
 app.use(cors());
 app.use(express.json());
 
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
-app.get('/api/tables', async (req, res) => {
+app.get('/api/tables', async (_req, res) => {
   try {
     const tables = await db.getTableSchema();
     res.json({ tables });
@@ -35,10 +35,10 @@ app.post('/api/query', async (req, res) => {
     }
 
     const result = await db.query(sql);
-    res.json({ result });
+    return res.json({ result });
   } catch (error) {
     console.error('Query error:', error);
-    res.status(500).json({ error: 'Query failed', details: error });
+    return res.status(500).json({ error: 'Query failed', details: error });
   }
 });
 

@@ -10,8 +10,10 @@ export class OpenAIService {
 
   async transcribeAudio(audioBuffer: Buffer): Promise<string> {
     try {
-      const file = new File([audioBuffer], 'audio.webm', { type: 'audio/webm' });
-      
+      const file = new File([audioBuffer], 'audio.webm', {
+        type: 'audio/webm',
+      });
+
       const transcription = await this.client.audio.transcriptions.create({
         file,
         model: 'whisper-1',
@@ -57,13 +59,13 @@ Respond in JSON format:
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: userInput }
+          { role: 'user', content: userInput },
         ],
         response_format: { type: 'json_object' },
         temperature: 0.3,
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '{}');
+      const result = JSON.parse(response.choices[0]?.message?.content || '{}');
       return result;
     } catch (error) {
       console.error('Intent extraction error:', error);
@@ -71,7 +73,11 @@ Respond in JSON format:
     }
   }
 
-  async generateResponse(queryResult: any[], userQuery: string, intent: any): Promise<string> {
+  async generateResponse(
+    queryResult: any[],
+    userQuery: string,
+    intent: any
+  ): Promise<string> {
     try {
       const systemPrompt = `You are a helpful flight operations assistant. 
 Given the database query results and the user's original question, provide a clear, concise, and natural response.
@@ -82,21 +88,24 @@ If no results were found, politely inform the user.`;
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
-          { 
-            role: 'user', 
+          {
+            role: 'user',
             content: `User asked: "${userQuery}"
 Intent detected: ${intent.intent}
 Entities: ${JSON.stringify(intent.entities)}
 Query results: ${JSON.stringify(queryResult)}
 
-Please provide a natural, helpful response.`
-          }
+Please provide a natural, helpful response.`,
+          },
         ],
         temperature: 0.7,
         max_tokens: 200,
       });
 
-      return response.choices[0].message.content || 'I apologize, but I couldn\'t generate a response.';
+      return (
+        response.choices[0]?.message?.content ||
+        "I apologize, but I couldn't generate a response."
+      );
     } catch (error) {
       console.error('Response generation error:', error);
       throw error;
