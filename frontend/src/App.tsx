@@ -1,9 +1,13 @@
-import { Mic, MicOff, Loader2, AlertCircle, Plane } from 'lucide-react';
-import { useVoiceAssistant } from './hooks/useVoiceAssistant';
+import { Mic, MicOff, Loader2, AlertCircle, Plane, Activity } from 'lucide-react';
+import { useVoiceAssistantWithVAD } from './hooks/useVoiceAssistantWithVAD';
 import { useWakeWord } from './hooks/useWakeWord';
+import { VADSettings } from './components/VADSettings';
 import { cn } from './lib/utils';
+import { useState } from 'react';
 
 function App() {
+  const [silenceThreshold, setSilenceThresholdState] = useState(600);
+  
   const {
     isListening,
     isProcessing,
@@ -12,16 +16,23 @@ function App() {
     intent,
     error,
     isConnected,
+    vadActive,
     startListening,
     stopListening,
-  } = useVoiceAssistant();
+    setSilenceThreshold,
+    vadEnabled,
+  } = useVoiceAssistantWithVAD({
+    enabled: true,
+    silenceThreshold,
+    autoStop: true,
+  });
 
   // Wake word integration
   const wakeWord = useWakeWord({
     autoStart: true,
     onWakeWord: () => {
       if (!isListening && !isProcessing) {
-        startListening();
+        startListening(true); // Pass true to indicate wake word triggered
       }
     }
   });
@@ -30,8 +41,13 @@ function App() {
     if (isListening) {
       stopListening();
     } else {
-      startListening();
+      startListening(false);
     }
+  };
+
+  const handleThresholdChange = (threshold: number) => {
+    setSilenceThresholdState(threshold);
+    setSilenceThreshold(threshold);
   };
 
   return (
@@ -53,7 +69,13 @@ function App() {
           <div className='bg-slate-800/50 rounded-lg p-4 backdrop-blur-sm border border-slate-700'>
             <div className='flex items-center justify-between mb-4'>
               <h2 className='text-lg font-semibold'>Status</h2>
-              <div className='space-y-2'>
+              <div className='flex items-center gap-4'>
+                <VADSettings
+                  silenceThreshold={silenceThreshold}
+                  onThresholdChange={handleThresholdChange}
+                  vadEnabled={vadEnabled}
+                />
+                <div className='space-y-2'>
                 <div className='flex items-center gap-2'>
                   <div
                     className={cn(
@@ -85,6 +107,18 @@ function App() {
                           : 'Initializing'
                     }
                   </span>
+                </div>
+                <div className='flex items-center gap-2'>
+                  <Activity 
+                    className={cn(
+                      'w-3 h-3',
+                      vadActive ? 'text-green-500' : 'text-slate-500'
+                    )}
+                  />
+                  <span className='text-sm text-slate-400'>
+                    VAD: {vadActive ? 'Speaking' : 'Silent'}
+                  </span>
+                </div>
                 </div>
               </div>
             </div>
@@ -124,8 +158,10 @@ function App() {
 
             <p className='text-center text-slate-400'>
               {isListening
-                ? 'Listening... Click to stop'
-                : 'Click to start speaking'}
+                ? vadActive 
+                  ? 'Listening... (Speaking detected)'
+                  : 'Listening... (Waiting for speech)'
+                : 'Click to start speaking or say wake word'}
             </p>
           </div>
 

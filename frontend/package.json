@@ -17,6 +17,7 @@
   "dependencies": {
     "@picovoice/porcupine-web": "^3.0.3",
     "@picovoice/web-voice-processor": "^4.0.9",
+    "@ricky0123/vad-web": "^0.0.24",
     "@tailwindcss/postcss": "^4.1.11",
     "clsx": "^2.1.1",
     "lucide-react": "^0.539.0",
