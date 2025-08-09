@@ -60,6 +60,10 @@ export const useWakeWord = (options: UseWakeWordOptions = {}) => {
       return;
     }
 
+    if (isActive) {
+      return;
+    }
+
     try {
       await detectorRef.current.start();
       setIsActive(true);
@@ -72,6 +76,10 @@ export const useWakeWord = (options: UseWakeWordOptions = {}) => {
 
   const stop = async () => {
     if (!detectorRef.current || !isInitialized) {
+      return;
+    }
+
+    if (!isActive) {
       return;
     }
 

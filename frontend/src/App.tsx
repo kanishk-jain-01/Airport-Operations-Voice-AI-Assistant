@@ -1,5 +1,6 @@
 import { Mic, MicOff, Loader2, AlertCircle, Plane } from 'lucide-react';
 import { useVoiceAssistant } from './hooks/useVoiceAssistant';
+import { useWakeWord } from './hooks/useWakeWord';
 import { cn } from './lib/utils';
 
 function App() {
@@ -14,6 +15,16 @@ function App() {
     startListening,
     stopListening,
   } = useVoiceAssistant();
+
+  // Wake word integration
+  const wakeWord = useWakeWord({
+    autoStart: true,
+    onWakeWord: () => {
+      if (!isListening && !isProcessing) {
+        startListening();
+      }
+    }
+  });
 
   const toggleListening = () => {
     if (isListening) {
@@ -41,19 +52,47 @@ function App() {
         <div className='space-y-6'>
           <div className='bg-slate-800/50 rounded-lg p-4 backdrop-blur-sm border border-slate-700'>
             <div className='flex items-center justify-between mb-4'>
-              <h2 className='text-lg font-semibold'>Connection Status</h2>
-              <div className='flex items-center gap-2'>
-                <div
-                  className={cn(
-                    'w-3 h-3 rounded-full',
-                    isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                  )}
-                />
-                <span className='text-sm text-slate-400'>
-                  {isConnected ? 'Connected' : 'Disconnected'}
-                </span>
+              <h2 className='text-lg font-semibold'>Status</h2>
+              <div className='space-y-2'>
+                <div className='flex items-center gap-2'>
+                  <div
+                    className={cn(
+                      'w-3 h-3 rounded-full',
+                      isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                    )}
+                  />
+                  <span className='text-sm text-slate-400'>
+                    WebSocket: {isConnected ? 'Connected' : 'Disconnected'}
+                  </span>
+                </div>
+                <div className='flex items-center gap-2'>
+                  <div
+                    className={cn(
+                      'w-3 h-3 rounded-full',
+                      wakeWord.isInitialized && !wakeWord.error
+                        ? wakeWord.isActive 
+                          ? 'bg-blue-500 animate-pulse' 
+                          : 'bg-yellow-500'
+                        : 'bg-red-500'
+                    )}
+                  />
+                  <span className='text-sm text-slate-400'>
+                    Wake Word: {
+                      wakeWord.error 
+                        ? 'Error' 
+                        : wakeWord.isInitialized 
+                          ? wakeWord.isActive ? 'Listening' : 'Ready'
+                          : 'Initializing'
+                    }
+                  </span>
+                </div>
               </div>
             </div>
+            {wakeWord.error && (
+              <div className='text-xs text-red-400 mt-2 p-2 bg-red-900/20 rounded border border-red-500/30'>
+                Wake Word Error: {wakeWord.error}
+              </div>
+            )}
           </div>
 
           <div className='bg-slate-800/50 rounded-lg p-6 backdrop-blur-sm border border-slate-700'>

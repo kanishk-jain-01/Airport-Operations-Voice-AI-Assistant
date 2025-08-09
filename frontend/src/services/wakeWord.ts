@@ -1,29 +1,43 @@
-import { PorcupineWorker, BuiltInKeyword } from '@picovoice/porcupine-web';
+import { Porcupine, BuiltInKeyword } from '@picovoice/porcupine-web';
 import type { PorcupineDetection } from '@picovoice/porcupine-web';
 import { WebVoiceProcessor } from '@picovoice/web-voice-processor';
 
 export class WakeWordDetector {
-  private porcupineWorker: PorcupineWorker | null = null;
+  private porcupineInstance: Porcupine | null = null;
   private isListening = false;
   private onWakeWordCallback: (() => void) | null = null;
 
   async initialize(accessKey: string): Promise<void> {
+    if (this.porcupineInstance) {
+      await this.cleanup();
+    }
+
     try {
-      this.porcupineWorker = await PorcupineWorker.create(
+      // Define the model configuration
+      const porcupineModel = {
+        publicPath: '/porcupine_params.pv', // Model file in public directory
+        forceWrite: true,
+        version: 1,
+      };
+
+      // Create detection callback
+      const keywordDetectionCallback = (detection: PorcupineDetection) => {
+        if (detection && this.onWakeWordCallback) {
+          this.onWakeWordCallback();
+        }
+      };
+
+      // Initialize Porcupine instance
+      this.porcupineInstance = await Porcupine.create(
         accessKey,
         [
-          BuiltInKeyword.Jarvis,
-          BuiltInKeyword.Alexa,
-          BuiltInKeyword.OkayGoogle,
-          BuiltInKeyword.HeyGoogle,
+          { builtin: BuiltInKeyword.Jarvis },
+          { builtin: BuiltInKeyword.Alexa },
+          { builtin: BuiltInKeyword.OkayGoogle },
+          { builtin: BuiltInKeyword.HeyGoogle },
         ],
-        (detection: PorcupineDetection) => {
-          if (detection && this.onWakeWordCallback) {
-            console.log('Wake word detected:', detection);
-            this.onWakeWordCallback();
-          }
-        },
-        { publicPath: '/porcupine_params.pv', base64: '', forceWrite: false } // Default model
+        keywordDetectionCallback,
+        porcupineModel
       );
     } catch (error) {
       console.error('Failed to initialize Porcupine:', error);
@@ -32,7 +46,7 @@ export class WakeWordDetector {
   }
 
   async start(): Promise<void> {
-    if (!this.porcupineWorker) {
+    if (!this.porcupineInstance) {
       throw new Error('Wake word detector not initialized');
     }
 
@@ -41,9 +55,8 @@ export class WakeWordDetector {
     }
 
     try {
-      await WebVoiceProcessor.subscribe(this.porcupineWorker);
+      await WebVoiceProcessor.subscribe(this.porcupineInstance);
       this.isListening = true;
-      console.log('Wake word detection started');
     } catch (error) {
       console.error('Failed to start wake word detection:', error);
       throw error;
@@ -51,14 +64,13 @@ export class WakeWordDetector {
   }
 
   async stop(): Promise<void> {
-    if (!this.porcupineWorker || !this.isListening) {
+    if (!this.porcupineInstance || !this.isListening) {
       return;
     }
 
     try {
-      await WebVoiceProcessor.unsubscribe(this.porcupineWorker);
+      await WebVoiceProcessor.unsubscribe(this.porcupineInstance);
       this.isListening = false;
-      console.log('Wake word detection stopped');
     } catch (error) {
       console.error('Failed to stop wake word detection:', error);
       throw error;
@@ -74,9 +86,9 @@ export class WakeWordDetector {
       await this.stop();
     }
 
-    if (this.porcupineWorker) {
-      this.porcupineWorker.terminate();
-      this.porcupineWorker = null;
+    if (this.porcupineInstance) {
+      await this.porcupineInstance.release();
+      this.porcupineInstance = null;
     }
   }
 
