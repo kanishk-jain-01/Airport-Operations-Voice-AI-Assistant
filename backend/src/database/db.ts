@@ -133,6 +133,72 @@ class DatabaseManager {
     return this.query("SELECT name FROM sqlite_master WHERE type='table'");
   }
 
+  async getFlightByNumber(flightNumber: string): Promise<any[]> {
+    const sql = `
+      SELECT 
+        f.flight_number,
+        f.flight_status,
+        f.scheduled_departure,
+        f.actual_departure,
+        f.scheduled_arrival,
+        f.actual_arrival,
+        f.aircraft_type,
+        f.passenger_count,
+        f.captain_name,
+        f.cabin_lead_name,
+        origin.airport_name as origin_name,
+        origin.city_name as origin_city,
+        dest.airport_name as destination_name,
+        dest.city_name as destination_city,
+        g.gate_number,
+        g.terminal
+      FROM flights f
+      LEFT JOIN airports origin ON f.origin_airport_code = origin.airport_code
+      LEFT JOIN airports dest ON f.destination_airport_code = dest.airport_code
+      LEFT JOIN gates g ON f.gate_id = g.gate_id
+      WHERE f.flight_number LIKE ?
+    `;
+    return this.query(sql, [`%${flightNumber}%`]);
+  }
+
+  async searchFlightsByRoute(origin?: string, destination?: string): Promise<any[]> {
+    let sql = `
+      SELECT 
+        f.flight_number,
+        f.flight_status,
+        f.scheduled_departure,
+        f.scheduled_arrival,
+        f.aircraft_type,
+        origin.airport_name as origin_name,
+        origin.city_name as origin_city,
+        dest.airport_name as destination_name,
+        dest.city_name as destination_city,
+        g.gate_number,
+        g.terminal
+      FROM flights f
+      LEFT JOIN airports origin ON f.origin_airport_code = origin.airport_code
+      LEFT JOIN airports dest ON f.destination_airport_code = dest.airport_code
+      LEFT JOIN gates g ON f.gate_id = g.gate_id
+      WHERE 1=1
+    `;
+    
+    const params: string[] = [];
+    
+    if (origin) {
+      sql += ` AND (origin.city_name LIKE ? OR origin.airport_code LIKE ? OR origin.airport_name LIKE ?)`;
+      params.push(`%${origin}%`, `%${origin}%`, `%${origin}%`);
+    }
+    
+    if (destination) {
+      sql += ` AND (dest.city_name LIKE ? OR dest.airport_code LIKE ? OR dest.airport_name LIKE ?)`;
+      params.push(`%${destination}%`, `%${destination}%`, `%${destination}%`);
+    }
+    
+    sql += ` ORDER BY f.scheduled_departure`;
+    
+    return this.query(sql, params);
+  }
+
   close(): void {
     if (this.db) {
       this.db.close();

@@ -104,11 +104,18 @@ Type your query in the text input field and press Send
 
 ## Example Queries
 
-- "What is the status of flight UA2406?"
-- "What gate is UA123 departing from?"
-- "Show me all flights from SFO to LAX"
-- "Is flight UA456 delayed?"
-- "What time does UA789 arrive?"
+Based on the actual United Airlines database:
+
+- "What is the status of flight UA1214?"
+- "What gate is UA1214 departing from?"
+- "Show me all flights from Los Angeles to Phoenix"
+- "Is flight UA1179 delayed?"
+- "What time does UA2953 depart?"
+- "Show me flights from Los Angeles"
+- "What's the status of flights to San Francisco?"
+- "Which flights are currently turning?"
+- "What aircraft type is UA1214?"
+- "Who is the captain of flight UA1357?"
 
 ## API Endpoints
 
@@ -117,6 +124,8 @@ Type your query in the text input field and press Send
 - `GET /health` - Health check
 - `GET /api/tables` - List database tables
 - `POST /api/query` - Execute SQL query
+- `GET /api/flight/:flightNumber` - Get flight details by flight number
+- `GET /api/flights/route?origin=LAX&destination=PHX` - Search flights by route
 
 ### WebSocket Messages
 

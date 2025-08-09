@@ -42,6 +42,28 @@ app.post('/api/query', async (req, res) => {
   }
 });
 
+app.get('/api/flight/:flightNumber', async (req, res) => {
+  try {
+    const { flightNumber } = req.params;
+    const result = await db.getFlightByNumber(flightNumber);
+    return res.json({ result });
+  } catch (error) {
+    console.error('Flight lookup error:', error);
+    return res.status(500).json({ error: 'Flight lookup failed', details: error });
+  }
+});
+
+app.get('/api/flights/route', async (req, res) => {
+  try {
+    const { origin, destination } = req.query;
+    const result = await db.searchFlightsByRoute(origin as string, destination as string);
+    return res.json({ result });
+  } catch (error) {
+    console.error('Flight search error:', error);
+    return res.status(500).json({ error: 'Flight search failed', details: error });
+  }
+});
+
 async function startServer() {
   try {
     await db.initialize();

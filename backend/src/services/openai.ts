@@ -37,15 +37,68 @@ export class OpenAIService {
       const systemPrompt = `You are a flight operations assistant that converts natural language queries into structured data for database queries.
 
 Given a user's question about United Airlines flights, extract:
-1. The intent (e.g., flight_status, gate_info, departure_time, arrival_time, delay_status, flight_search)
-2. Relevant entities (e.g., flight_number, origin, destination, date)
+1. The intent (e.g., flight_status, gate_info, departure_time, arrival_time, flight_search, crew_info, boarding_info)
+2. Relevant entities (e.g., flight_number, origin, destination, date, time)
 3. A confidence score (0-1)
 4. The appropriate SQL query for the database
 
-The database has the following main tables:
-- flights: flight_number, origin, destination, scheduled_departure, scheduled_arrival, actual_departure, actual_arrival, status, gate, terminal
-- delays: flight_number, delay_minutes, delay_reason
-- aircraft: flight_number, aircraft_type, tail_number
+The database schema is:
+
+FLIGHTS table (main flight information):
+- flight_id (VARCHAR, primary key)
+- airline_code (VARCHAR)
+- flight_number (VARCHAR) - format like "UA1214"
+- origin_airport_code (VARCHAR) - format like "XLOS", "XPHO" 
+- destination_airport_code (VARCHAR) - format like "XPHO", "XSAN"
+- scheduled_arrival (TIMESTAMP)
+- actual_arrival (TIMESTAMP) 
+- scheduled_departure (TIMESTAMP)
+- actual_departure (TIMESTAMP)
+- flight_status (VARCHAR) - values like "On Time Depature", "Late", "Turning", "Turning Preparation", "Waiting on Aircraft"
+- gate_id (INTEGER, foreign key to gates table)
+- aircraft_type (VARCHAR)
+- passenger_count (INTEGER)
+- captain_name (VARCHAR)
+- cabin_lead_name (VARCHAR)
+- ramp_manager_name (VARCHAR)
+- connecting_bags_info (VARCHAR)
+
+AIRPORTS table (airport information):
+- airport_code (VARCHAR, primary key) - format like "XDAL", "XMIA"
+- airport_name (VARCHAR) - like "Dallas (DFW) Regional Airport"
+- city_name (VARCHAR) - like "Dallas (DFW)"
+- state_code (VARCHAR)
+- country_code (VARCHAR)
+
+GATES table (gate information):
+- gate_id (INTEGER, primary key)
+- gate_number (VARCHAR) - like "C6", "B20"
+- terminal (VARCHAR) - like "C", "B"
+- gate_type (VARCHAR) - like "Standard"
+- is_active (BOOLEAN)
+
+FLIGHT_OPERATIONS table (operational details):
+- operation_id (INTEGER, primary key)
+- flight_id (VARCHAR, foreign key)
+- boarding_start_time (TIMESTAMP)
+- pushback_target_time (TIMESTAMP)
+- external_power_info (VARCHAR)
+- ramp_team_members (TEXT)
+
+EMPLOYEES table (staff information):
+- employee_id (VARCHAR, primary key)
+- employee_name (VARCHAR)
+- phone_number (VARCHAR)
+- created_at (TIMESTAMP)
+- updated_at (TIMESTAMP)
+
+Query Guidelines:
+- Use JOINs to get airport names: JOIN airports ON flights.origin_airport_code = airports.airport_code
+- Use JOINs to get gate info: JOIN gates ON flights.gate_id = gates.gate_id
+- Flight numbers should be matched with LIKE '%flight_number%' or exact match
+- Airport codes in this system use X prefix (XLOS, XPHO, etc.)
+- For city searches, JOIN with airports table and search city_name
+- Flight status values include "On Time Depature", "Late", "Turning", "Turning Preparation", "Waiting on Aircraft"
 
 Respond in JSON format:
 {
@@ -79,10 +132,19 @@ Respond in JSON format:
     intent: any
   ): Promise<string> {
     try {
-      const systemPrompt = `You are a helpful flight operations assistant. 
+      const systemPrompt = `You are a helpful United Airlines flight operations assistant. 
 Given the database query results and the user's original question, provide a clear, concise, and natural response.
-Be specific with flight numbers, times, gates, and other details.
-If no results were found, politely inform the user.`;
+
+Guidelines:
+- Be specific with flight numbers, times, gates, cities, and other details
+- Format times in a readable way (e.g., "6:17 AM" instead of "06:17:00")
+- Use city names when available (e.g., "Los Angeles" not "XLOS")
+- If flight status is "On Time Depature", say "on time for departure"
+- If flight status is "Late", mention the delay
+- For flight searches, list multiple flights clearly
+- If no results found, politely suggest alternatives or ask for clarification
+- Keep responses conversational and professional
+- Include relevant operational details like aircraft type, gate, terminal when available`;
 
       const response = await this.client.chat.completions.create({
         model: 'gpt-4o-mini',
@@ -91,15 +153,15 @@ If no results were found, politely inform the user.`;
           {
             role: 'user',
             content: `User asked: "${userQuery}"
-Intent detected: ${intent.intent}
+Intent: ${intent.intent}
 Entities: ${JSON.stringify(intent.entities)}
-Query results: ${JSON.stringify(queryResult)}
+Query results: ${JSON.stringify(queryResult, null, 2)}
 
 Please provide a natural, helpful response.`,
           },
         ],
         temperature: 0.7,
-        max_tokens: 200,
+        max_tokens: 250,
       });
 
       return (
