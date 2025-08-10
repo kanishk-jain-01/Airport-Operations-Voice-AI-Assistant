@@ -69,33 +69,33 @@ function App() {
 
       <div className='relative container mx-auto max-w-5xl p-4 md:p-8'>
         {/* Header */}
-        <header className='text-center py-8 md:py-12 animate-fade-in'>
-          <div className='inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass mb-6'>
-            <Sparkles className='w-3 h-3 text-primary' />
-            <span className='text-xs font-medium text-muted-foreground'>AI-Powered Voice Assistant</span>
+        <header className='text-center py-12 md:py-16 animate-fade-in'>
+          <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8'>
+            <Sparkles className='w-4 h-4 text-primary' />
+            <span className='text-sm font-medium text-muted-foreground'>AI-Powered Voice Assistant</span>
           </div>
           
-          <div className='flex items-center justify-center gap-4 mb-3'>
+          <div className='flex items-center justify-center gap-6 mb-6'>
             <div className='relative'>
-              <Plane className='w-10 h-10 text-primary' />
+              <Plane className='w-12 h-12 text-primary' />
               <div className='absolute -inset-2 bg-primary/20 blur-xl rounded-full animate-pulse' />
             </div>
-            <h1 className='text-4xl md:text-5xl font-bold text-gradient'>
+            <h1 className='text-5xl md:text-6xl lg:text-7xl font-bold text-gradient leading-tight'>
               Flight Operations Assistant
             </h1>
           </div>
-          <p className='text-muted-foreground max-w-2xl mx-auto'>
+          <p className='text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed'>
             Your intelligent voice companion for United Airlines flight information. 
             Ask about flights, gates, delays, and more using natural speech.
           </p>
         </header>
 
-        <div className='space-y-6'>
+        <div className='space-y-8'>
           {/* Status Bar */}
           <Card className='glass border-white/10 overflow-hidden animate-fade-up'>
-            <CardHeader className='pb-3'>
+            <CardHeader className='pb-4'>
               <div className='flex items-center justify-between'>
-                <CardTitle className='text-base'>System Status</CardTitle>
+                <CardTitle className='text-lg'>System Status</CardTitle>
                 <VADSettings
                   silenceThreshold={silenceThreshold}
                   onThresholdChange={handleThresholdChange}
@@ -103,32 +103,32 @@ function App() {
                 />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+            <CardContent className='pb-6'>
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                 {/* WebSocket Status */}
-                <div className='flex items-center gap-3'>
+                <div className='flex items-center gap-4'>
                   <div className={cn(
-                    'p-2 rounded-lg',
+                    'p-3 rounded-lg',
                     isConnected ? 'bg-green-500/10' : 'bg-red-500/10'
                   )}>
                     {isConnected ? (
-                      <Wifi className='w-4 h-4 text-green-500' />
+                      <Wifi className='w-5 h-5 text-green-500' />
                     ) : (
-                      <WifiOff className='w-4 h-4 text-red-500' />
+                      <WifiOff className='w-5 h-5 text-red-500' />
                     )}
                   </div>
                   <div>
-                    <p className='text-xs text-muted-foreground'>Connection</p>
-                    <p className='text-sm font-medium'>
+                    <p className='text-sm text-muted-foreground'>Connection</p>
+                    <p className='text-base font-medium'>
                       {isConnected ? 'Connected' : 'Disconnected'}
                     </p>
                   </div>
                 </div>
 
                 {/* Wake Word Status */}
-                <div className='flex items-center gap-3'>
+                <div className='flex items-center gap-4'>
                   <div className={cn(
-                    'p-2 rounded-lg',
+                    'p-3 rounded-lg',
                     wakeWord.isInitialized && !wakeWord.error
                       ? wakeWord.isActive 
                         ? 'bg-blue-500/10' 
@@ -136,7 +136,7 @@ function App() {
                       : 'bg-red-500/10'
                   )}>
                     <Bot className={cn(
-                      'w-4 h-4',
+                      'w-5 h-5',
                       wakeWord.isInitialized && !wakeWord.error
                         ? wakeWord.isActive 
                           ? 'text-blue-500' 
@@ -145,8 +145,8 @@ function App() {
                     )} />
                   </div>
                   <div>
-                    <p className='text-xs text-muted-foreground'>Wake Word</p>
-                    <p className='text-sm font-medium'>
+                    <p className='text-sm text-muted-foreground'>Wake Word</p>
+                    <p className='text-base font-medium'>
                       {wakeWord.error 
                         ? 'Error' 
                         : wakeWord.isInitialized 
@@ -157,19 +157,19 @@ function App() {
                 </div>
 
                 {/* VAD Status */}
-                <div className='flex items-center gap-3'>
+                <div className='flex items-center gap-4'>
                   <div className={cn(
-                    'p-2 rounded-lg',
+                    'p-3 rounded-lg',
                     vadActive ? 'bg-green-500/10' : 'bg-muted'
                   )}>
                     <Activity className={cn(
-                      'w-4 h-4',
+                      'w-5 h-5',
                       vadActive ? 'text-green-500' : 'text-muted-foreground'
                     )} />
                   </div>
                   <div>
-                    <p className='text-xs text-muted-foreground'>Voice Activity</p>
-                    <p className='text-sm font-medium'>
+                    <p className='text-sm text-muted-foreground'>Voice Activity</p>
+                    <p className='text-base font-medium'>
                       {vadActive ? 'Speaking' : 'Silent'}
                     </p>
                   </div>
@@ -177,9 +177,9 @@ function App() {
               </div>
               
               {wakeWord.error && (
-                <Alert variant="destructive" className='mt-4 bg-red-500/5 border-red-500/20'>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className='text-xs'>
+                <Alert variant="destructive" className='mt-6 bg-red-500/5 border-red-500/20'>
+                  <AlertCircle className="h-5 w-5" />
+                  <AlertDescription className='text-sm'>
                     Wake Word Error: {wakeWord.error}
                   </AlertDescription>
                 </Alert>
@@ -189,21 +189,21 @@ function App() {
 
           {/* Voice Control */}
           <Card className='glass border-white/10 overflow-hidden animate-fade-up' style={{ animationDelay: '100ms' }}>
-            <CardHeader>
-              <CardTitle>Voice Control</CardTitle>
-              <CardDescription>
+            <CardHeader className='pb-6'>
+              <CardTitle className='text-xl'>Voice Control</CardTitle>
+              <CardDescription className='text-base'>
                 Click the button or say the wake word to start
               </CardDescription>
             </CardHeader>
-            <CardContent className='flex flex-col items-center space-y-6'>
-              <div className='relative'>
+            <CardContent className='flex flex-col items-center py-8'>
+              <div className='relative mb-8'>
                 <Button
                   onClick={toggleListening}
                   disabled={isProcessing || !isConnected}
                   variant="glass"
                   size="xl"
                   className={cn(
-                    'relative h-24 w-24 rounded-full transition-all duration-300',
+                    'relative h-32 w-32 rounded-full transition-all duration-300',
                     'hover:scale-105 active:scale-95',
                     isListening && 'animate-pulse-glow'
                   )}
@@ -216,104 +216,87 @@ function App() {
                   )} />
                   
                   {isListening ? (
-                    <MicOff className='relative z-10 w-10 h-10 text-white' />
+                    <MicOff className='relative z-10 w-14 h-14 text-white' />
                   ) : (
-                    <Mic className='relative z-10 w-10 h-10 text-white' />
+                    <Mic className='relative z-10 w-14 h-14 text-white' />
                   )}
                   
                   {isListening && (
                     <>
                       <div className='absolute inset-0 rounded-full bg-red-400 animate-ping opacity-75' />
-                      <div className='absolute -inset-4 rounded-full bg-red-500/20 animate-pulse' />
+                      <div className='absolute -inset-6 rounded-full bg-red-500/20 animate-pulse' />
                     </>
                   )}
                 </Button>
-
-                {/* Voice activity indicator */}
-                {isListening && vadActive && (
-                  <div className='absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-1'>
-                    {[...Array(5)].map((_, i) => (
-                      <div
-                        key={i}
-                        className='w-1 h-4 bg-primary rounded-full animate-voice-wave'
-                        style={{ animationDelay: `${i * 100}ms` }}
-                      />
-                    ))}
-                  </div>
-                )}
               </div>
 
-              <div className='text-center space-y-2'>
-                <p className='text-sm text-muted-foreground'>
-                  {isListening
-                    ? vadActive 
-                      ? 'Listening... Speaking detected'
-                      : 'Listening... Waiting for speech'
-                    : 'Click to start or say wake word'}
-                </p>
-                
-                {isListening && (
-                  <Badge variant="secondary" className='animate-fade-in'>
-                    <Activity className='w-3 h-3 mr-1' />
-                    Recording Active
-                  </Badge>
-                )}
-              </div>
+              {/* Voice activity indicator */}
+              {isListening && vadActive && (
+                <div className='flex gap-1 mb-4'>
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      className='w-1.5 h-5 bg-primary rounded-full animate-voice-wave'
+                      style={{ animationDelay: `${i * 100}ms` }}
+                    />
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Error Alert */}
           {error && (
             <Alert variant="destructive" className='glass border-red-500/20 animate-fade-in'>
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
+              <AlertCircle className="h-5 w-5" />
+              <AlertTitle className='text-lg'>Error</AlertTitle>
+              <AlertDescription className='text-base'>{error}</AlertDescription>
             </Alert>
           )}
 
           {/* Conversation Display */}
           {(transcription || response || intent) && (
-            <div className='space-y-4 animate-fade-up' style={{ animationDelay: '200ms' }}>
+            <div className='space-y-6 animate-fade-up' style={{ animationDelay: '200ms' }}>
               {transcription && (
                 <Card className='glass border-white/10 overflow-hidden'>
-                  <CardHeader className='pb-3'>
-                    <div className='flex items-center gap-2'>
-                      <User className='w-4 h-4 text-muted-foreground' />
-                      <CardTitle className='text-sm'>Your Message</CardTitle>
+                  <CardHeader className='pb-4'>
+                    <div className='flex items-center gap-3'>
+                      <User className='w-5 h-5 text-muted-foreground' />
+                      <CardTitle className='text-base'>Your Message</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className='text-base'>{transcription}</p>
+                    <p className='text-lg leading-relaxed'>{transcription}</p>
                   </CardContent>
                 </Card>
               )}
 
               {intent && (
                 <Card className='glass border-white/10 overflow-hidden'>
-                  <CardHeader className='pb-3'>
-                    <CardTitle className='text-sm'>Intent Analysis</CardTitle>
+                  <CardHeader className='pb-4'>
+                    <CardTitle className='text-base'>Intent Analysis</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className='space-y-3'>
-                      <div className='flex items-center gap-2'>
-                        <Badge variant="outline" className='font-mono'>
+                    <div className='space-y-4'>
+                      <div className='flex items-center gap-3'>
+                        <Badge variant="outline" className='font-mono text-sm px-3 py-1'>
                           {intent.intent}
                         </Badge>
                         {intent.confidence && (
-                          <Badge variant="secondary" className='text-xs'>
+                          <Badge variant="secondary" className='text-sm px-3 py-1'>
                             {(intent.confidence * 100).toFixed(0)}% confidence
                           </Badge>
                         )}
                       </div>
                       
                       {intent.entities && Object.keys(intent.entities).length > 0 && (
-                        <div className='space-y-2'>
-                          <p className='text-xs text-muted-foreground font-medium'>Entities</p>
+                        <div className='space-y-3'>
+                          <p className='text-sm text-muted-foreground font-medium'>Entities</p>
                           <div className='flex flex-wrap gap-2'>
                             {Object.entries(intent.entities).map(([key, value]) => (
-                              <div key={key} className='inline-flex items-center gap-1'>
-                                <span className='text-xs text-muted-foreground'>{key}:</span>
-                                <Badge variant="secondary" className='text-xs font-mono'>
+                              <div key={key} className='inline-flex items-center gap-2'>
+                                <span className='text-sm text-muted-foreground'>{key}:</span>
+                                <Badge variant="secondary" className='text-sm font-mono px-3 py-1'>
                                   {JSON.stringify(value)}
                                 </Badge>
                               </div>
@@ -328,14 +311,14 @@ function App() {
 
               {response && (
                 <Card className='glass border-primary/20 bg-gradient-to-br from-primary/5 to-cyan-500/5 overflow-hidden'>
-                  <CardHeader className='pb-3'>
-                    <div className='flex items-center gap-2'>
-                      <Bot className='w-4 h-4 text-primary' />
-                      <CardTitle className='text-sm'>Assistant Response</CardTitle>
+                  <CardHeader className='pb-4'>
+                    <div className='flex items-center gap-3'>
+                      <Bot className='w-5 h-5 text-primary' />
+                      <CardTitle className='text-base'>Assistant Response</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className='text-base leading-relaxed'>{response}</p>
+                    <p className='text-lg leading-relaxed'>{response}</p>
                   </CardContent>
                 </Card>
               )}
@@ -345,11 +328,11 @@ function App() {
           {/* Processing Indicator */}
           {isProcessing && (
             <Card className='glass border-white/10 animate-fade-in'>
-              <CardContent className='py-8'>
-                <div className='flex flex-col items-center justify-center space-y-3'>
-                  <Loader2 className='w-8 h-8 animate-spin text-primary' />
-                  <p className='text-sm text-muted-foreground'>Processing your request...</p>
-                  <div className='w-48 h-1 bg-muted rounded-full overflow-hidden'>
+              <CardContent className='py-10'>
+                <div className='flex flex-col items-center justify-center space-y-4'>
+                  <Loader2 className='w-10 h-10 animate-spin text-primary' />
+                  <p className='text-base text-muted-foreground'>Processing your request...</p>
+                  <div className='w-56 h-2 bg-muted rounded-full overflow-hidden'>
                     <div className='h-full bg-primary rounded-full shimmer' />
                   </div>
                 </div>
@@ -359,23 +342,23 @@ function App() {
         </div>
 
         {/* Footer */}
-        <footer className='text-center py-8 mt-12'>
-          <Separator className='mb-8 bg-white/5' />
-          <div className='space-y-2'>
-            <p className='text-xs text-muted-foreground'>
+        <footer className='text-center py-12 mt-16'>
+          <Separator className='mb-10 bg-white/5' />
+          <div className='space-y-4'>
+            <p className='text-sm text-muted-foreground'>
               Powered by OpenAI Whisper, GPT-4o-mini, and Picovoice Porcupine
             </p>
-            <div className='flex items-center justify-center gap-2 text-xs text-muted-foreground'>
-              <Badge variant="outline" className='text-xs'>
-                <ChevronRight className='w-3 h-3 mr-1' />
+            <div className='flex items-center justify-center gap-3 text-sm text-muted-foreground'>
+              <Badge variant="outline" className='text-sm px-3 py-1'>
+                <ChevronRight className='w-4 h-4 mr-2' />
                 Voice Recognition
               </Badge>
-              <Badge variant="outline" className='text-xs'>
-                <ChevronRight className='w-3 h-3 mr-1' />
+              <Badge variant="outline" className='text-sm px-3 py-1'>
+                <ChevronRight className='w-4 h-4 mr-2' />
                 Natural Language
               </Badge>
-              <Badge variant="outline" className='text-xs'>
-                <ChevronRight className='w-3 h-3 mr-1' />
+              <Badge variant="outline" className='text-sm px-3 py-1'>
+                <ChevronRight className='w-4 h-4 mr-2' />
                 Real-time Processing
               </Badge>
             </div>

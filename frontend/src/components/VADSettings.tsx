@@ -22,40 +22,40 @@ export function VADSettings({
         <Button
           variant="glass"
           size="icon"
-          className="relative"
+          className="relative h-10 w-10"
         >
-          <Settings className="h-4 w-4" />
+          <Settings className="h-5 w-5" />
           <span className="sr-only">VAD Settings</span>
           {vadEnabled && (
-            <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse" />
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 glass border-white/10" align="end">
-        <div className="space-y-4">
-          <div className="space-y-2">
+      <PopoverContent className="w-96 glass border-white/10" align="end">
+        <div className="space-y-5">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="font-medium text-sm">Voice Activity Detection</h4>
-              <Badge variant={vadEnabled ? "success" : "secondary"} className="text-xs">
+              <h4 className="font-medium text-base">Voice Activity Detection</h4>
+              <Badge variant={vadEnabled ? "success" : "secondary"} className="text-sm px-3 py-1">
                 {vadEnabled ? "Active" : "Inactive"}
               </Badge>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Automatically stops recording when you stop speaking
             </p>
           </div>
           
           <Separator className="bg-white/10" />
           
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-muted-foreground" />
-                <label className="text-sm font-medium">
+              <div className="flex items-center gap-3">
+                <Activity className="h-5 w-5 text-muted-foreground" />
+                <label className="text-base font-medium">
                   Silence Threshold
                 </label>
               </div>
-              <span className="text-xs text-muted-foreground font-mono">
+              <span className="text-sm text-muted-foreground font-mono">
                 {silenceThreshold}ms
               </span>
             </div>
@@ -69,19 +69,19 @@ export function VADSettings({
               className="w-full"
             />
             
-            <div className="flex justify-between text-xs text-muted-foreground">
+            <div className="flex justify-between text-sm text-muted-foreground">
               <span>Quick</span>
               <span>Balanced</span>
               <span>Patient</span>
             </div>
           </div>
           
-          <div className="rounded-lg bg-primary/5 p-3 border border-primary/10">
-            <div className="flex items-start gap-2">
-              <Volume2 className="h-4 w-4 text-primary mt-0.5" />
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-primary">Tip</p>
-                <p className="text-xs text-muted-foreground">
+          <div className="rounded-lg bg-primary/5 p-4 border border-primary/10">
+            <div className="flex items-start gap-3">
+              <Volume2 className="h-5 w-5 text-primary mt-0.5" />
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-primary">Tip</p>
+                <p className="text-sm text-muted-foreground">
                   Lower values stop recording faster, higher values wait longer for you to continue speaking.
                 </p>
               </div>
