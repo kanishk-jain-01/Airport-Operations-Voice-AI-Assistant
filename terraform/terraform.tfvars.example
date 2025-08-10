@@ -28,3 +28,7 @@ desired_capacity = 2
 
 # Secrets
 openai_api_key = "your-openai-api-key-here"
+
+# Optional: Picovoice access key for wake word detection
+# Leave empty if you don't want wake word functionality
+picovoice_access_key = ""

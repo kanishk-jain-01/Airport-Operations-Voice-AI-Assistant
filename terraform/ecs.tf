@@ -150,6 +150,13 @@ resource "aws_ecs_task_definition" "frontend" {
         }
       ]
 
+      secrets = var.picovoice_access_key != "" ? [
+        {
+          name      = "VITE_PICOVOICE_ACCESS_KEY"
+          valueFrom = aws_ssm_parameter.picovoice_access_key[0].arn
+        }
+      ] : []
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -184,8 +191,8 @@ resource "aws_ecs_service" "backend" {
 
   network_configuration {
     security_groups  = [aws_security_group.backend.id]
-    subnets          = aws_subnet.private[*].id
-    assign_public_ip = false
+    subnets          = data.aws_subnets.default.ids
+    assign_public_ip = true
   }
 
   load_balancer {
@@ -221,8 +228,8 @@ resource "aws_ecs_service" "frontend" {
 
   network_configuration {
     security_groups  = [aws_security_group.frontend.id]
-    subnets          = aws_subnet.private[*].id
-    assign_public_ip = false
+    subnets          = data.aws_subnets.default.ids
+    assign_public_ip = true
   }
 
   load_balancer {

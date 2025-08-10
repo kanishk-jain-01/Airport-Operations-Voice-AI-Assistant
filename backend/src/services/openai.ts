@@ -10,7 +10,7 @@ export class OpenAIService {
 
   async transcribeAudio(audioBuffer: Buffer): Promise<string> {
     try {
-      const file = new File([audioBuffer], 'audio.webm', {
+      const file = new File([new Uint8Array(audioBuffer)], 'audio.webm', {
         type: 'audio/webm',
       });
 

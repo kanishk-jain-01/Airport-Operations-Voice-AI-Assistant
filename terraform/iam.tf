@@ -140,7 +140,5 @@ resource "aws_iam_role" "ecs_autoscale" {
   }
 }
 
-resource "aws_iam_role_policy_attachment" "ecs_autoscale" {
-  role       = aws_iam_role.ecs_autoscale.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSServiceRolePolicy"
-}
+# Note: AmazonECSServiceRolePolicy was deprecated by AWS
+# Auto scaling for ECS Fargate works without this policy

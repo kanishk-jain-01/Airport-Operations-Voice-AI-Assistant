@@ -93,3 +93,10 @@ variable "openai_api_key" {
   type        = string
   sensitive   = true
 }
+
+variable "picovoice_access_key" {
+  description = "Picovoice access key for wake word detection (optional)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}

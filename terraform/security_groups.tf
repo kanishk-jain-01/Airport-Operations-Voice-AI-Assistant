@@ -1,7 +1,7 @@
 # Security Group for Application Load Balancer
 resource "aws_security_group" "alb" {
   name_prefix = "${local.name_prefix}-alb-"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     description = "HTTP"
@@ -38,7 +38,7 @@ resource "aws_security_group" "alb" {
 # Security Group for Backend ECS Tasks
 resource "aws_security_group" "backend" {
   name_prefix = "${local.name_prefix}-backend-"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     description     = "HTTP from ALB"
@@ -75,7 +75,7 @@ resource "aws_security_group" "backend" {
 # Security Group for Frontend ECS Tasks
 resource "aws_security_group" "frontend" {
   name_prefix = "${local.name_prefix}-frontend-"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     description     = "HTTP from ALB"
@@ -104,14 +104,14 @@ resource "aws_security_group" "frontend" {
 # Security Group for VPC Endpoints (if needed)
 resource "aws_security_group" "vpc_endpoints" {
   name_prefix = "${local.name_prefix}-vpc-endpoints-"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     description = "HTTPS from VPC"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr]
+              cidr_blocks = [data.aws_vpc.default.cidr_block]
   }
 
   egress {

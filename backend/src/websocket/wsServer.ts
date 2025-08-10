@@ -1,5 +1,5 @@
 import { WebSocketServer, WebSocket } from 'ws';
-import { AudioProcessor } from '../services/audioProcessor';
+import { AudioProcessor } from '../services/audioProcessor.js';
 
 export class WSServer {
   private wss: WebSocketServer;

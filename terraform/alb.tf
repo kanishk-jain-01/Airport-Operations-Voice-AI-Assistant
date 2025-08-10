@@ -4,7 +4,7 @@ resource "aws_lb" "main" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
-  subnets            = aws_subnet.public[*].id
+  subnets            = data.aws_subnets.default.ids
 
   enable_deletion_protection = false
 
@@ -15,10 +15,10 @@ resource "aws_lb" "main" {
 
 # Target Group for Frontend
 resource "aws_lb_target_group" "frontend" {
-  name        = "${local.name_prefix}-frontend-tg"
+  name        = "${var.project_name}-${var.environment}-fe-tg"
   port        = 80
   protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = data.aws_vpc.default.id
   target_type = "ip"
 
   health_check {
@@ -40,10 +40,10 @@ resource "aws_lb_target_group" "frontend" {
 
 # Target Group for Backend API
 resource "aws_lb_target_group" "backend_api" {
-  name        = "${local.name_prefix}-backend-api-tg"
+  name        = "${var.project_name}-${var.environment}-api-tg"
   port        = 3001
   protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = data.aws_vpc.default.id
   target_type = "ip"
 
   health_check {
@@ -65,10 +65,10 @@ resource "aws_lb_target_group" "backend_api" {
 
 # Target Group for Backend WebSocket
 resource "aws_lb_target_group" "backend_ws" {
-  name        = "${local.name_prefix}-backend-ws-tg"
+  name        = "${var.project_name}-${var.environment}-ws-tg"
   port        = 8080
   protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = data.aws_vpc.default.id
   target_type = "ip"
 
   health_check {

@@ -40,9 +40,11 @@ COPY package*.json ./
 # Install only production dependencies
 RUN npm ci --only=production && npm cache clean --force
 
-# Copy built application and database from builder stage
+# Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/united_airlines_normalized\ \(Gauntlet\).db ./
+
+# Copy database from base stage (since it's not built, just copied)
+COPY --from=base /app/*.db ./
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs

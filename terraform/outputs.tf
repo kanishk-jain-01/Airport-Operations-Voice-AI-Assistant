@@ -1,16 +1,11 @@
 output "vpc_id" {
-  description = "ID of the VPC"
-  value       = aws_vpc.main.id
+  description = "ID of the default VPC"
+  value       = data.aws_vpc.default.id
 }
 
-output "private_subnets" {
-  description = "IDs of the private subnets"
-  value       = aws_subnet.private[*].id
-}
-
-output "public_subnets" {
-  description = "IDs of the public subnets"
-  value       = aws_subnet.public[*].id
+output "default_subnets" {
+  description = "IDs of the default subnets"
+  value       = data.aws_subnets.default.ids
 }
 
 output "alb_dns_name" {
@@ -66,5 +61,11 @@ output "cloudwatch_log_group_frontend" {
 output "ssm_openai_api_key_parameter" {
   description = "SSM parameter name for OpenAI API key"
   value       = aws_ssm_parameter.openai_api_key.name
+  sensitive   = true
+}
+
+output "ssm_picovoice_access_key_parameter" {
+  description = "SSM parameter name for Picovoice access key (if configured)"
+  value       = var.picovoice_access_key != "" ? aws_ssm_parameter.picovoice_access_key[0].name : "Not configured"
   sensitive   = true
 }
