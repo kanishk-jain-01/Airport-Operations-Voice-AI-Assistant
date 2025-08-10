@@ -35,8 +35,18 @@ export const useWakeWord = (options: UseWakeWordOptions = {}) => {
         setError(null);
 
         if (options.autoStart) {
-          await detectorRef.current.start();
-          setIsActive(true);
+          // Small delay to ensure initialization is complete and state has updated
+          setTimeout(async () => {
+            try {
+              if (detectorRef.current) {
+                await detectorRef.current.start();
+                setIsActive(true);
+              }
+            } catch (err) {
+              console.error('Failed to auto-start wake word detector:', err);
+              setError('Failed to auto-start wake word detection');
+            }
+          }, 250);
         }
       } catch (err) {
         console.error('Failed to initialize wake word detector:', err);

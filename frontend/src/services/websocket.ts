@@ -12,13 +12,36 @@ export class WebSocketClient {
 
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
+      // Clear any existing connection
+      if (this.ws) {
+        this.ws.close();
+        this.ws = null;
+      }
+
       try {
         this.ws = new WebSocket(this.url);
+        let resolved = false;
+
+        const connectionTimeout = setTimeout(() => {
+          if (!resolved) {
+            console.error('WebSocket connection timeout');
+            if (this.ws) {
+              this.ws.close();
+              this.ws = null;
+            }
+            resolved = true;
+            reject(new Error('Connection timeout'));
+          }
+        }, 5000); // 5 second timeout
 
         this.ws.onopen = () => {
-          console.log('WebSocket connected');
-          this.reconnectAttempts = 0;
-          resolve();
+          if (!resolved) {
+            console.log('WebSocket connected');
+            clearTimeout(connectionTimeout);
+            this.reconnectAttempts = 0;
+            resolved = true;
+            resolve();
+          }
         };
 
         this.ws.onmessage = event => {
@@ -32,12 +55,21 @@ export class WebSocketClient {
 
         this.ws.onerror = error => {
           console.error('WebSocket error:', error);
-          reject(error);
+          if (!resolved) {
+            clearTimeout(connectionTimeout);
+            resolved = true;
+            reject(error);
+          }
         };
 
-        this.ws.onclose = () => {
-          console.log('WebSocket disconnected');
-          this.attemptReconnect();
+        this.ws.onclose = (event) => {
+          console.log('WebSocket disconnected', event.code, event.reason);
+          clearTimeout(connectionTimeout);
+          
+          // Only attempt reconnect if this wasn't a deliberate close
+          if (event.code !== 1000) {
+            this.attemptReconnect();
+          }
         };
       } catch (error) {
         reject(error);
@@ -92,6 +124,12 @@ export class WebSocketClient {
     if (callbacks) {
       callbacks.forEach(callback => callback(data));
     }
+  }
+
+  async reconnect(): Promise<void> {
+    this.disconnect();
+    this.reconnectAttempts = 0;
+    return this.connect();
   }
 
   get isConnected(): boolean {
