@@ -7,7 +7,7 @@ import { VoiceActivityDetector } from '../services/voiceActivityDetector';
 // This prevents StrictMode from causing duplicate initializations
 let globalInitializing = false;
 let globalInitialized = false;
-let globalServices = {
+const globalServices = {
   wsClient: null as WebSocketClient | null,
   audioRecorder: null as AudioRecorder | null,
   audioContext: null as AudioContext | null,
