@@ -26,6 +26,8 @@ export const useVoiceAssistant = () => {
   const wsClient = useRef<WebSocketClient | null>(null);
   const audioRecorder = useRef<AudioRecorder | null>(null);
   const audioContext = useRef<AudioContext | null>(null);
+  const audioQueue = useRef<Uint8Array[]>([]);
+  const isPlayingAudio = useRef<boolean>(false);
 
   useEffect(() => {
     const initializeServices = async () => {
@@ -57,8 +59,27 @@ export const useVoiceAssistant = () => {
           setState(prev => ({ ...prev, intent: data.data }));
         });
 
+        wsClient.current.on('query_result', data => {
+          // Store query results for debugging or future use
+          console.log('Query result:', data.data);
+        });
+
+        wsClient.current.on('response_chunk', data => {
+          setState(prev => ({ ...prev, response: prev.response + data.data }));
+        });
+
         wsClient.current.on('response', data => {
           setState(prev => ({ ...prev, response: data.data }));
+        });
+
+        wsClient.current.on('audio_chunk_response', async data => {
+          if (data.audio && audioContext.current) {
+            const audioData = Uint8Array.from(atob(data.audio), c =>
+              c.charCodeAt(0)
+            );
+            audioQueue.current.push(audioData);
+            playNextAudioChunk();
+          }
         });
 
         wsClient.current.on('audio_response', async data => {
@@ -114,6 +135,39 @@ export const useVoiceAssistant = () => {
     };
   }, []);
 
+  const playNextAudioChunk = useCallback(async () => {
+    if (isPlayingAudio.current || audioQueue.current.length === 0 || !audioContext.current) {
+      return;
+    }
+
+    isPlayingAudio.current = true;
+    const audioData = audioQueue.current.shift();
+    
+    if (audioData) {
+      try {
+        const audioBuffer = await audioContext.current.decodeAudioData(audioData.buffer);
+        const source = audioContext.current.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(audioContext.current.destination);
+        
+        source.onended = () => {
+          isPlayingAudio.current = false;
+          // Play next chunk if available
+          setTimeout(playNextAudioChunk, 10); // Small delay to prevent rapid-fire calls
+        };
+        
+        source.start();
+      } catch (error) {
+        console.error('Error playing audio chunk:', error);
+        isPlayingAudio.current = false;
+        // Try next chunk if this one failed
+        setTimeout(playNextAudioChunk, 10);
+      }
+    } else {
+      isPlayingAudio.current = false;
+    }
+  }, []);
+
   const startListening = useCallback(async () => {
     if (!audioRecorder.current || !wsClient.current) {
       setState(prev => ({ ...prev, error: 'Services not initialized' }));
@@ -128,6 +182,10 @@ export const useVoiceAssistant = () => {
         response: '',
         intent: null,
       }));
+
+      // Clear audio queue for new session
+      audioQueue.current = [];
+      isPlayingAudio.current = false;
 
       wsClient.current.send('start_recording');
 

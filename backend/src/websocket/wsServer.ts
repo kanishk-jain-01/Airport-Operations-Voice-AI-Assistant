@@ -64,45 +64,83 @@ export class WSServer {
                 this.audioProcessor.addAudioChunk(audioBuffer);
 
                 try {
-                  const result =
-                    await this.audioProcessor.processAudioPipeline();
+                  for await (const chunk of this.audioProcessor.processAudioPipelineStream()) {
+                    switch (chunk.type) {
+                      case 'transcription':
+                        ws.send(
+                          JSON.stringify({
+                            type: 'transcription',
+                            data: chunk.data,
+                          })
+                        );
+                        break;
 
-                  ws.send(
-                    JSON.stringify({
-                      type: 'transcription',
-                      data: result.transcription,
-                    })
-                  );
+                      case 'intent':
+                        ws.send(
+                          JSON.stringify({
+                            type: 'intent',
+                            data: chunk.data,
+                          })
+                        );
+                        break;
 
-                  ws.send(
-                    JSON.stringify({
-                      type: 'intent',
-                      data: result.intent,
-                    })
-                  );
+                      case 'query_result':
+                        ws.send(
+                          JSON.stringify({
+                            type: 'query_result',
+                            data: chunk.data,
+                          })
+                        );
+                        break;
 
-                  ws.send(
-                    JSON.stringify({
-                      type: 'response',
-                      data: result.response,
-                    })
-                  );
+                      case 'response_chunk':
+                        ws.send(
+                          JSON.stringify({
+                            type: 'response_chunk',
+                            data: chunk.data,
+                          })
+                        );
+                        break;
 
-                  if (result.audioStream) {
-                    const audioChunks: Buffer[] = [];
-                    result.audioStream.on('data', (chunk: Buffer) => {
-                      audioChunks.push(chunk);
-                    });
+                      case 'response_complete':
+                        ws.send(
+                          JSON.stringify({
+                            type: 'response',
+                            data: chunk.data,
+                          })
+                        );
+                        break;
 
-                    result.audioStream.on('end', () => {
-                      const audioBuffer = Buffer.concat(audioChunks);
-                      ws.send(
-                        JSON.stringify({
-                          type: 'audio_response',
-                          audio: audioBuffer.toString('base64'),
-                        })
-                      );
-                    });
+                      case 'audio_chunk':
+                        if (chunk.data) {
+                          ws.send(
+                            JSON.stringify({
+                              type: 'audio_chunk_response',
+                              audio: chunk.data.toString('base64'),
+                            })
+                          );
+                        }
+                        break;
+
+                      case 'audio_stream':
+                        if (chunk.data) {
+                          const audioChunks: Buffer[] = [];
+                          chunk.data.on('data', (audioChunk: Buffer) => {
+                            audioChunks.push(audioChunk);
+                          });
+
+                          chunk.data.on('end', () => {
+                            const audioBuffer = Buffer.concat(audioChunks);
+                            ws.send(
+                              JSON.stringify({
+                                type: 'audio_response',
+                                audio: audioBuffer.toString('base64'),
+                              })
+                            );
+                          });
+                        }
+                        break;
+                    }
                   }
 
                   ws.send(JSON.stringify({ type: 'processing_complete' }));

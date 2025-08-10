@@ -174,6 +174,57 @@ Please provide a natural, helpful response.`,
     }
   }
 
+  async *generateResponseStream(
+    queryResult: any[],
+    userQuery: string,
+    intent: any
+  ): AsyncGenerator<string, void, unknown> {
+    try {
+      const systemPrompt = `You are a helpful United Airlines flight operations assistant. 
+Given the database query results and the user's original question, provide a clear, concise, and natural response.
+
+Guidelines:
+- Be specific with flight numbers, times, gates, cities, and other details
+- Format times in a readable way (e.g., "6:17 AM" instead of "06:17:00")
+- Use city names when available (e.g., "Los Angeles" not "XLOS")
+- If flight status is "On Time Depature", say "on time for departure"
+- If flight status is "Late", mention the delay
+- For flight searches, list multiple flights clearly
+- If no results found, politely suggest alternatives or ask for clarification
+- Keep responses conversational and professional
+- Include relevant operational details like aircraft type, gate, terminal when available`;
+
+      const stream = await this.client.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          {
+            role: 'user',
+            content: `User asked: "${userQuery}"
+Intent: ${intent.intent}
+Entities: ${JSON.stringify(intent.entities)}
+Query results: ${JSON.stringify(queryResult, null, 2)}
+
+Please provide a natural, helpful response.`,
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 250,
+        stream: true,
+      });
+
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) {
+          yield content;
+        }
+      }
+    } catch (error) {
+      console.error('Response generation streaming error:', error);
+      throw error;
+    }
+  }
+
   async textToSpeech(text: string): Promise<Readable> {
     try {
       const response = await this.client.audio.speech.create({
@@ -188,6 +239,22 @@ Please provide a natural, helpful response.`,
       return stream;
     } catch (error) {
       console.error('TTS error:', error);
+      throw error;
+    }
+  }
+
+  async textToSpeechChunk(text: string): Promise<Buffer> {
+    try {
+      const response = await this.client.audio.speech.create({
+        model: 'tts-1',
+        voice: 'nova',
+        input: text,
+        response_format: 'mp3',
+      });
+
+      return Buffer.from(await response.arrayBuffer());
+    } catch (error) {
+      console.error('TTS chunk error:', error);
       throw error;
     }
   }
