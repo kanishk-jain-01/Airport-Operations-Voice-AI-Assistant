@@ -1,0 +1,24 @@
+# Environment Configuration Example
+# Copy this file to .env and fill in your actual values
+
+# Backend Configuration
+NODE_ENV=development
+PORT=3001
+
+# OpenAI Configuration
+OPENAI_API_KEY=your-openai-api-key-here
+
+# Database Configuration (if using external database in the future)
+# DATABASE_URL=postgresql://username:password@host:port/database
+
+# AWS Configuration (for deployment)
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your-aws-access-key-id
+AWS_SECRET_ACCESS_KEY=your-aws-secret-access-key
+
+# Frontend Configuration
+VITE_BACKEND_URL=http://localhost:3001
+VITE_WS_URL=ws://localhost:8080
+
+# Docker Configuration (for local development)
+COMPOSE_PROJECT_NAME=frontier-audio

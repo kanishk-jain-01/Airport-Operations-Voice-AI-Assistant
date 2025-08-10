@@ -1,0 +1,143 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  ECR_BACKEND_REPOSITORY: frontier-audio-production-backend
+  ECR_FRONTEND_REPOSITORY: frontier-audio-production-frontend
+  ECS_CLUSTER: frontier-audio-production-cluster
+  ECS_BACKEND_SERVICE: frontier-audio-production-backend
+  ECS_FRONTEND_SERVICE: frontier-audio-production-frontend
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        service: [backend, frontend]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.service }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.service }}
+        run: npm ci
+
+      - name: Run type checking
+        working-directory: ${{ matrix.service }}
+        run: npm run typecheck
+
+      - name: Run linting
+        working-directory: ${{ matrix.service }}
+        run: npm run lint
+
+      - name: Check formatting
+        working-directory: ${{ matrix.service }}
+        run: npm run format:check
+
+      - name: Build application
+        working-directory: ${{ matrix.service }}
+        run: npm run build
+
+  build-and-deploy:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        service: [backend, frontend]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set ECR repository
+        id: ecr-repo
+        run: |
+          if [ "${{ matrix.service }}" = "backend" ]; then
+            echo "repository=${{ env.ECR_BACKEND_REPOSITORY }}" >> $GITHUB_OUTPUT
+          else
+            echo "repository=${{ env.ECR_FRONTEND_REPOSITORY }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build, tag, and push Docker image
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ steps.ecr-repo.outputs.repository }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Build the Docker image
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./${{ matrix.service }}
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+          # Push the images to ECR
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Download task definition
+        id: download-task-def
+        env:
+          ECS_SERVICE: ${{ matrix.service == 'backend' && env.ECS_BACKEND_SERVICE || env.ECS_FRONTEND_SERVICE }}
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition $(aws ecs describe-services --cluster ${{ env.ECS_CLUSTER }} --services $ECS_SERVICE --query 'services[0].taskDefinition' --output text | cut -d'/' -f2) \
+            --query taskDefinition > task-definition.json
+          echo "task-def-file=task-definition.json" >> $GITHUB_OUTPUT
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ steps.download-task-def.outputs.task-def-file }}
+          container-name: ${{ matrix.service }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ matrix.service == 'backend' && env.ECS_BACKEND_SERVICE || env.ECS_FRONTEND_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+  notify:
+    needs: [lint-and-test, build-and-deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Notify deployment status
+        run: |
+          if [ "${{ needs.build-and-deploy.result }}" = "success" ]; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed!"
+            exit 1
+          fi

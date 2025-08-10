@@ -28,9 +28,33 @@ A voice-enabled flight operations assistant that allows querying United Airlines
 
 ## Setup
 
+### Quick Start
+
+For local development:
+```bash
+# Clone and setup
+git clone <your-repo-url>
+cd frontier-audio
+./scripts/setup-local.sh
+
+# Start development
+docker-compose up
+# OR
+cd backend && npm run dev &
+cd frontend && npm run dev
+```
+
+For production deployment to AWS:
+```bash
+# See DEPLOYMENT.md for complete guide
+./scripts/deploy.sh
+```
+
 ### Prerequisites
-- Node.js 18+
+- Node.js 20+
 - OpenAI API key
+- Docker (for containerized deployment)
+- AWS CLI and Terraform (for cloud deployment)
 - Picovoice access key (optional, for wake word detection)
 - SQLite database file: `united_airlines_normalized (Gauntlet).db`
 
@@ -166,6 +190,33 @@ npm run preview  # Preview production build
 - WebSocket streaming for low-latency audio transmission
 - Chunked audio processing for real-time transcription
 - Parallel processing of STT and NLP when possible
+
+## Deployment
+
+This application supports both local development and cloud deployment to AWS.
+
+### Local Development
+- Docker Compose for easy local setup
+- Hot reload for both frontend and backend
+- Comprehensive setup script included
+
+### Production Deployment to AWS
+- **Infrastructure**: ECS Fargate with Application Load Balancer
+- **Container Registry**: Amazon ECR for Docker images  
+- **Monitoring**: CloudWatch for logs and metrics
+- **Scaling**: Auto-scaling based on CPU and memory
+- **Security**: VPC with private subnets, IAM roles, encrypted secrets
+- **CI/CD**: GitHub Actions for automated deployments
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete deployment guide including:
+- AWS infrastructure setup with Terraform
+- Docker containerization
+- GitHub Actions CI/CD pipeline
+- Monitoring and maintenance
+
+### Branch Strategy
+- `dev` branch: Development work, triggers CI pipeline
+- `main` branch: Production releases, triggers CI/CD with deployment
 
 ## Error Handling
 
