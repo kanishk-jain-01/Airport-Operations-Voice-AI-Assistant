@@ -110,7 +110,7 @@ resource "aws_cloudfront_distribution" "main" {
 
   # WebSocket support
   ordered_cache_behavior {
-    path_pattern           = "/socket.io/*"
+    path_pattern           = "/ws/*"
     allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods         = ["GET", "HEAD"]
     target_origin_id       = "${local.name_prefix}-alb-origin"
