@@ -1,4 +1,4 @@
-import { Mic, MicOff, Loader2, AlertCircle, Plane, Activity, Wifi, WifiOff, Sparkles, ChevronRight, Bot, User } from 'lucide-react';
+import { Mic, MicOff, Loader2, AlertCircle, Activity, Wifi, WifiOff, Sparkles, ChevronRight, Bot, User } from 'lucide-react';
 import { useVoiceAssistantWithVAD } from './hooks/useVoiceAssistantWithVAD';
 import { useWakeWord } from './hooks/useWakeWord';
 import { VADSettings } from './components/VADSettings';
@@ -76,10 +76,6 @@ function App() {
           </div>
           
           <div className='flex items-center justify-center gap-6 mb-6'>
-            <div className='relative'>
-              <Plane className='w-12 h-12 text-primary' />
-              <div className='absolute -inset-2 bg-primary/20 blur-xl rounded-full animate-pulse' />
-            </div>
             <h1 className='text-5xl md:text-6xl lg:text-7xl font-bold text-gradient leading-tight'>
               Flight Operations Assistant
             </h1>
