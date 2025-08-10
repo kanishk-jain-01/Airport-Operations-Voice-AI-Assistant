@@ -43,15 +43,6 @@ resource "aws_cloudwatch_log_group" "backend" {
   }
 }
 
-# CloudWatch Log Group for Frontend
-resource "aws_cloudwatch_log_group" "frontend" {
-  name              = "/ecs/${local.name_prefix}/frontend"
-  retention_in_days = 7
-
-  tags = {
-    Name = "${local.name_prefix}-frontend-logs"
-  }
-}
 
 # ECS Task Definition for Backend
 resource "aws_ecs_task_definition" "backend" {
@@ -121,65 +112,6 @@ resource "aws_ecs_task_definition" "backend" {
   }
 }
 
-# ECS Task Definition for Frontend
-resource "aws_ecs_task_definition" "frontend" {
-  family                   = "${local.name_prefix}-frontend"
-  network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]
-  cpu                      = var.frontend_cpu
-  memory                   = var.frontend_memory
-  execution_role_arn       = aws_iam_role.ecs_task_execution.arn
-  task_role_arn            = aws_iam_role.ecs_task.arn
-
-  container_definitions = jsonencode([
-    {
-      name  = "frontend"
-      image = "${aws_ecr_repository.frontend.repository_url}:latest"
-      
-      portMappings = [
-        {
-          containerPort = 80
-          protocol      = "tcp"
-        }
-      ]
-
-      environment = [
-        {
-          name  = "NODE_ENV"
-          value = "production"
-        }
-      ]
-
-      secrets = var.picovoice_access_key != "" ? [
-        {
-          name      = "VITE_PICOVOICE_ACCESS_KEY"
-          valueFrom = aws_ssm_parameter.picovoice_access_key[0].arn
-        }
-      ] : []
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = aws_cloudwatch_log_group.frontend.name
-          awslogs-region        = var.aws_region
-          awslogs-stream-prefix = "ecs"
-        }
-      }
-
-      healthCheck = {
-        command = ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
-        interval = 30
-        timeout = 5
-        retries = 3
-        startPeriod = 30
-      }
-    }
-  ])
-
-  tags = {
-    Name = "${local.name_prefix}-frontend-task"
-  }
-}
 
 # ECS Service for Backend
 resource "aws_ecs_service" "backend" {
@@ -218,31 +150,3 @@ resource "aws_ecs_service" "backend" {
   }
 }
 
-# ECS Service for Frontend
-resource "aws_ecs_service" "frontend" {
-  name            = "${local.name_prefix}-frontend"
-  cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.frontend.arn
-  desired_count   = var.desired_capacity
-  launch_type     = "FARGATE"
-
-  network_configuration {
-    security_groups  = [aws_security_group.frontend.id]
-    subnets          = data.aws_subnets.default.ids
-    assign_public_ip = true
-  }
-
-  load_balancer {
-    target_group_arn = aws_lb_target_group.frontend.arn
-    container_name   = "frontend"
-    container_port   = 80
-  }
-
-  depends_on = [
-    aws_lb_listener.http
-  ]
-
-  tags = {
-    Name = "${local.name_prefix}-frontend-service"
-  }
-}

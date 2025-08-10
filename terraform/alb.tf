@@ -13,30 +13,6 @@ resource "aws_lb" "main" {
   }
 }
 
-# Target Group for Frontend
-resource "aws_lb_target_group" "frontend" {
-  name        = "${var.project_name}-${var.environment}-fe-tg"
-  port        = 80
-  protocol    = "HTTP"
-  vpc_id      = data.aws_vpc.default.id
-  target_type = "ip"
-
-  health_check {
-    enabled             = true
-    healthy_threshold   = 2
-    interval            = 30
-    matcher             = "200"
-    path                = "/"
-    port                = "traffic-port"
-    protocol            = "HTTP"
-    timeout             = 5
-    unhealthy_threshold = 2
-  }
-
-  tags = {
-    Name = "${local.name_prefix}-frontend-tg"
-  }
-}
 
 # Target Group for Backend API
 resource "aws_lb_target_group" "backend_api" {
@@ -95,24 +71,12 @@ resource "aws_lb_listener" "http" {
   protocol          = "HTTP"
 
   default_action {
-    type = var.certificate_arn != "" ? "redirect" : "forward"
+    type = "fixed-response"
 
-    dynamic "redirect" {
-      for_each = var.certificate_arn != "" ? [1] : []
-      content {
-        port        = "443"
-        protocol    = "HTTPS"
-        status_code = "HTTP_301"
-      }
-    }
-
-    dynamic "forward" {
-      for_each = var.certificate_arn == "" ? [1] : []
-      content {
-        target_group {
-          arn = aws_lb_target_group.frontend.arn
-        }
-      }
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "Frontend served via CloudFront. Use the CloudFront URL."
+      status_code  = "404"
     }
   }
 }
@@ -128,8 +92,13 @@ resource "aws_lb_listener" "https" {
   certificate_arn   = var.certificate_arn
 
   default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.frontend.arn
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "Frontend served via CloudFront. Use the CloudFront URL."
+      status_code  = "404"
+    }
   }
 }
 

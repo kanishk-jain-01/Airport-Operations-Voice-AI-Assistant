@@ -23,15 +23,26 @@ output "alb_url" {
   value       = var.certificate_arn != "" ? "https://${aws_lb.main.dns_name}" : "http://${aws_lb.main.dns_name}"
 }
 
+output "cloudfront_url" {
+  description = "CloudFront URL (HTTPS enabled)"
+  value       = "https://${aws_cloudfront_distribution.main.domain_name}"
+}
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront Distribution ID"
+  value       = aws_cloudfront_distribution.main.id
+}
+
+output "s3_bucket_name" {
+  description = "S3 bucket name for frontend"
+  value       = aws_s3_bucket.frontend.bucket
+}
+
 output "ecr_backend_repository_url" {
   description = "URL of the backend ECR repository"
   value       = aws_ecr_repository.backend.repository_url
 }
 
-output "ecr_frontend_repository_url" {
-  description = "URL of the frontend ECR repository"
-  value       = aws_ecr_repository.frontend.repository_url
-}
 
 output "ecs_cluster_name" {
   description = "Name of the ECS cluster"
@@ -43,20 +54,12 @@ output "ecs_backend_service_name" {
   value       = aws_ecs_service.backend.name
 }
 
-output "ecs_frontend_service_name" {
-  description = "Name of the frontend ECS service"
-  value       = aws_ecs_service.frontend.name
-}
 
 output "cloudwatch_log_group_backend" {
   description = "CloudWatch log group for backend"
   value       = aws_cloudwatch_log_group.backend.name
 }
 
-output "cloudwatch_log_group_frontend" {
-  description = "CloudWatch log group for frontend"
-  value       = aws_cloudwatch_log_group.frontend.name
-}
 
 output "ssm_openai_api_key_parameter" {
   description = "SSM parameter name for OpenAI API key"

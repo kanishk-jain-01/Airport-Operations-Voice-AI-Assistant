@@ -166,7 +166,11 @@ export const useVoiceAssistantWithVAD = (vadOptions: VADOptions = {}) => {
           globalServices.wsClient.disconnect();
         }
         
-        globalServices.wsClient = new WebSocketClient('ws://localhost:8080');
+        // Use environment-aware WebSocket URL
+        const wsUrl = window.location.protocol === 'https:' 
+          ? `wss://${window.location.host}/` 
+          : 'ws://localhost:8080';
+        globalServices.wsClient = new WebSocketClient(wsUrl);
         await globalServices.wsClient.connect();
         wsClient.current = globalServices.wsClient;
         console.log('WebSocket initialized');
