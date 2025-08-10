@@ -3,6 +3,17 @@ import { WebSocketClient } from '../services/websocket';
 import { AudioRecorder } from '../services/audioRecorder';
 import { VoiceActivityDetector } from '../services/voiceActivityDetector';
 
+// Module-level variables to track initialization state across component mounts
+// This prevents StrictMode from causing duplicate initializations
+let globalInitializing = false;
+let globalInitialized = false;
+let globalServices = {
+  wsClient: null as WebSocketClient | null,
+  audioRecorder: null as AudioRecorder | null,
+  audioContext: null as AudioContext | null,
+  vad: null as VoiceActivityDetector | null,
+};
+
 interface VoiceAssistantState {
   isListening: boolean;
   isProcessing: boolean;
@@ -38,31 +49,57 @@ export const useVoiceAssistantWithVAD = (vadOptions: VADOptions = {}) => {
     vadActive: false,
   });
 
-  const wsClient = useRef<WebSocketClient | null>(null);
-  const audioRecorder = useRef<AudioRecorder | null>(null);
-  const audioContext = useRef<AudioContext | null>(null);
-  const vad = useRef<VoiceActivityDetector | null>(null);
+  const wsClient = useRef<WebSocketClient | null>(globalServices.wsClient);
+  const audioRecorder = useRef<AudioRecorder | null>(globalServices.audioRecorder);
+  const audioContext = useRef<AudioContext | null>(globalServices.audioContext);
+  const vad = useRef<VoiceActivityDetector | null>(globalServices.vad);
   const isRecordingTriggeredByWakeWord = useRef<boolean>(false);
   const audioQueue = useRef<Uint8Array[]>([]);
   const isPlayingAudio = useRef<boolean>(false);
 
   useEffect(() => {
     const initializeServices = async () => {
+      // Prevent double initialization using global state
+      if (globalInitializing || globalInitialized) {
+        console.log('Services already initializing or initialized, reusing existing services...');
+        
+        // Update local refs to point to global services
+        wsClient.current = globalServices.wsClient;
+        audioRecorder.current = globalServices.audioRecorder;
+        audioContext.current = globalServices.audioContext;
+        vad.current = globalServices.vad;
+        
+        // Update connection state based on existing WebSocket
+        if (wsClient.current?.isConnected) {
+          setState(prev => ({ ...prev, isConnected: true }));
+          setupWebSocketEventHandlers();
+        }
+        
+        return;
+      }
+      
+      globalInitializing = true;
       console.log('Initializing voice assistant services...');
       
       try {
-        // Initialize audio context first
-        audioContext.current = new AudioContext();
+        // Initialize audio context first (only if not already created)
+        if (!globalServices.audioContext) {
+          globalServices.audioContext = new AudioContext();
+          audioContext.current = globalServices.audioContext;
+        }
         
-        // Initialize audio recorder
-        audioRecorder.current = new AudioRecorder();
-        await audioRecorder.current.initialize();
-        console.log('Audio recorder initialized');
+        // Initialize audio recorder (only if not already created)
+        if (!globalServices.audioRecorder) {
+          globalServices.audioRecorder = new AudioRecorder();
+          await globalServices.audioRecorder.initialize();
+          audioRecorder.current = globalServices.audioRecorder;
+          console.log('Audio recorder initialized');
+        }
 
         // Initialize VAD if enabled (independent of WebSocket)
-        if (vadEnabled) {
+        if (vadEnabled && !globalServices.vad) {
           try {
-            vad.current = new VoiceActivityDetector({
+            globalServices.vad = new VoiceActivityDetector({
               silenceThreshold,
               onSpeechStart: () => {
                 setState(prev => ({ ...prev, vadActive: true }));
@@ -83,22 +120,30 @@ export const useVoiceAssistantWithVAD = (vadOptions: VADOptions = {}) => {
               },
             });
 
-            await vad.current.initialize();
+            await globalServices.vad.initialize();
+            vad.current = globalServices.vad;
             console.log('VAD initialized');
           } catch (vadError) {
             console.warn('VAD initialization failed, continuing without VAD:', vadError);
+            globalServices.vad = null;
             vad.current = null;
           }
         }
 
-        // Initialize WebSocket with retry logic
-        await initializeWebSocket();
+        // Initialize WebSocket with retry logic (only if not already connected)
+        if (!globalServices.wsClient || !globalServices.wsClient.isConnected) {
+          await initializeWebSocket();
+        }
+        
+        globalInitialized = true;
       } catch (error) {
         console.error('Failed to initialize core services:', error);
         setState(prev => ({
           ...prev,
           error: 'Failed to initialize audio services',
         }));
+      } finally {
+        globalInitializing = false;
       }
     };
 
@@ -106,9 +151,24 @@ export const useVoiceAssistantWithVAD = (vadOptions: VADOptions = {}) => {
       const maxRetries = 3;
       const retryDelay = 1000 * (retryCount + 1); // Exponential backoff
 
+      // Don't create a new connection if one already exists and is connected
+      if (globalServices.wsClient && globalServices.wsClient.isConnected) {
+        console.log('WebSocket already connected, skipping initialization');
+        wsClient.current = globalServices.wsClient;
+        setState(prev => ({ ...prev, isConnected: true, error: null }));
+        setupWebSocketEventHandlers();
+        return;
+      }
+
       try {
-        wsClient.current = new WebSocketClient('ws://localhost:8080');
-        await wsClient.current.connect();
+        // Clean up any existing connection first
+        if (globalServices.wsClient) {
+          globalServices.wsClient.disconnect();
+        }
+        
+        globalServices.wsClient = new WebSocketClient('ws://localhost:8080');
+        await globalServices.wsClient.connect();
+        wsClient.current = globalServices.wsClient;
         console.log('WebSocket initialized');
         
         setState(prev => ({ ...prev, isConnected: true, error: null }));
@@ -211,18 +271,28 @@ export const useVoiceAssistantWithVAD = (vadOptions: VADOptions = {}) => {
     initializeServices();
 
     return () => {
-      if (wsClient.current) {
-        wsClient.current.disconnect();
-      }
-      if (audioRecorder.current) {
-        audioRecorder.current.cleanup();
-      }
-      if (audioContext.current) {
-        audioContext.current.close();
-      }
-      if (vad.current) {
-        vad.current.destroy();
-      }
+      console.log('Cleaning up voice assistant component (not destroying shared services)...');
+      
+      // Only clear local refs - don't destroy the global services
+      // This allows services to persist across React StrictMode remounts
+      wsClient.current = null;
+      audioRecorder.current = null;
+      audioContext.current = null;
+      vad.current = null;
+      
+      // Clear audio queue and reset local state
+      audioQueue.current = [];
+      isPlayingAudio.current = false;
+      isRecordingTriggeredByWakeWord.current = false;
+      
+      // Reset component state (but don't affect global services)
+      setState(prev => ({
+        ...prev,
+        isListening: false,
+        isProcessing: false,
+        vadActive: false,
+        error: null
+      }));
     };
   }, [vadEnabled, silenceThreshold, autoStop]);
 
