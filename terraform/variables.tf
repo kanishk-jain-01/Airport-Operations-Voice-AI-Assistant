@@ -83,9 +83,4 @@ variable "openai_api_key" {
   sensitive   = true
 }
 
-variable "picovoice_access_key" {
-  description = "Picovoice access key for wake word detection (optional)"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
+# Note: Picovoice variable removed - wake word detection now uses Web Speech API

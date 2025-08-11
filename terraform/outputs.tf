@@ -67,8 +67,4 @@ output "ssm_openai_api_key_parameter" {
   sensitive   = true
 }
 
-output "ssm_picovoice_access_key_parameter" {
-  description = "SSM parameter name for Picovoice access key (if configured)"
-  value       = var.picovoice_access_key != "" ? aws_ssm_parameter.picovoice_access_key[0].name : "Not configured"
-  sensitive   = true
-}
+# Note: Picovoice output removed - wake word detection now uses Web Speech API
