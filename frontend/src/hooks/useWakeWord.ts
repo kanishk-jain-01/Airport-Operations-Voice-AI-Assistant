@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { WakeWordDetector } from '../services/wakeWord';
 
 interface UseWakeWordOptions {
-  accessKey?: string;
+  accessKey?: string; // Kept for compatibility, but not used with Web Speech API
   onWakeWord?: () => void;
   autoStart?: boolean;
+  wakeWords?: string[]; // New option to customize wake words
 }
 
 export const useWakeWord = (options: UseWakeWordOptions = {}) => {
@@ -15,17 +16,15 @@ export const useWakeWord = (options: UseWakeWordOptions = {}) => {
 
   useEffect(() => {
     const initializeDetector = async () => {
-      const accessKey =
-        options.accessKey || import.meta.env.VITE_PICOVOICE_ACCESS_KEY || '';
-
-      if (!accessKey) {
-        setError('Picovoice access key not provided');
-        return;
-      }
-
       try {
         detectorRef.current = new WakeWordDetector();
-        await detectorRef.current.initialize(accessKey);
+        
+        // Set custom wake words if provided
+        if (options.wakeWords) {
+          detectorRef.current.setWakeWords(options.wakeWords);
+        }
+        
+        await detectorRef.current.initialize();
 
         if (options.onWakeWord) {
           detectorRef.current.onWakeWord(options.onWakeWord);
@@ -44,13 +43,13 @@ export const useWakeWord = (options: UseWakeWordOptions = {}) => {
               }
             } catch (err) {
               console.error('Failed to auto-start wake word detector:', err);
-              setError('Failed to auto-start wake word detection');
+              setError('Failed to auto-start wake word detection. Please ensure microphone permissions are granted.');
             }
           }, 250);
         }
       } catch (err) {
         console.error('Failed to initialize wake word detector:', err);
-        setError('Failed to initialize wake word detection');
+        setError('Failed to initialize wake word detection. Web Speech API may not be supported in this browser.');
         setIsInitialized(false);
       }
     };

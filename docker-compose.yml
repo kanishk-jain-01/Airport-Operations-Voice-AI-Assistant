@@ -32,8 +32,6 @@ services:
       target: development  # Use development stage
     ports:
       - "5173:5173"  # Vite dev server
-    env_file:
-      - ./frontend/.env
     environment:
       - NODE_ENV=development
       - VITE_BACKEND_URL=http://localhost:3001

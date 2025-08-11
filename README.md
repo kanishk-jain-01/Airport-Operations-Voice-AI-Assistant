@@ -4,7 +4,7 @@ A voice-enabled flight operations assistant that allows querying United Airlines
 
 ## Features
 
-- **Wake Word Detection**: Hands-free activation using Picovoice Porcupine (supports "Jarvis", "Alexa", "Hey Google")
+- **Wake Word Detection**: Hands-free activation using Web Speech API (supports "Jarvis", "Alexa", "Hey Google", "Okay Google")
 - **Speech-to-Text**: Real-time audio transcription using OpenAI Whisper
 - **Natural Language Processing**: Intent extraction and entity recognition using GPT-4o-mini
 - **Database Queries**: In-memory SQLite database for fast flight information retrieval
@@ -14,7 +14,7 @@ A voice-enabled flight operations assistant that allows querying United Airlines
 ## Architecture
 
 ### Frontend (React + TypeScript + Vite)
-- Wake word detection (Picovoice Porcupine)
+- Wake word detection (Web Speech API)
 - Audio capture and streaming via WebSocket
 - Modern UI with Tailwind CSS
 - Real-time status updates and debugging information
@@ -55,7 +55,7 @@ For production deployment to AWS:
 - OpenAI API key
 - Docker (for containerized deployment)
 - AWS CLI and Terraform (for cloud deployment)
-- Picovoice access key (optional, for wake word detection)
+- Modern web browser with Web Speech API support (for wake word detection)
 - SQLite database file: `united_airlines_normalized (Gauntlet).db`
 
 ### Backend Setup
@@ -99,10 +99,7 @@ cd frontend
 npm install
 ```
 
-3. (Optional) Create a `.env` file for wake word detection:
-```bash
-VITE_PICOVOICE_ACCESS_KEY=your_picovoice_access_key_here
-```
+3. Wake word detection will work automatically with supported browsers (Chrome, Safari, Edge)
 
 4. Start the development server:
 ```bash
@@ -119,9 +116,10 @@ The frontend will run on http://localhost:5173
 3. Click the microphone button again to stop and process
 
 ### Wake Word (Optional)
-1. Enable wake word detection in the UI
-2. Say "Jarvis", "Alexa", or "Hey Google" to activate
+1. Wake word detection starts automatically if supported by your browser
+2. Say "Jarvis", "Alexa", "Hey Google", or "Okay Google" to activate
 3. The assistant will automatically start listening
+4. Ensure microphone permissions are granted for your browser
 
 ## Example Queries
 
@@ -221,7 +219,7 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete deployment guide including:
 ## Error Handling
 
 - Automatic WebSocket reconnection with exponential backoff
-- Graceful degradation when wake word detection unavailable
+- Graceful degradation when Web Speech API unavailable
 - Clear error messages in UI for debugging
 - Fallback responses for low-confidence intents
 
