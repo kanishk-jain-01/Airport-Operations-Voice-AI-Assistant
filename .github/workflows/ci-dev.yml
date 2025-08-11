@@ -1,0 +1,78 @@
+name: CI for Dev Branch
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev, main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        service: [backend, frontend]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.service }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.service }}
+        run: npm ci
+
+      - name: Run type checking
+        working-directory: ${{ matrix.service }}
+        run: npm run typecheck
+
+      - name: Run linting
+        working-directory: ${{ matrix.service }}
+        run: npm run lint
+
+      - name: Check formatting
+        working-directory: ${{ matrix.service }}
+        run: npm run format:check
+
+      - name: Build application
+        working-directory: ${{ matrix.service }}
+        run: npm run build
+
+  docker-build:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        service: [backend, frontend]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t frontier-audio-${{ matrix.service }}:dev ./${{ matrix.service }}
+          echo "✅ Docker image built successfully for ${{ matrix.service }}"
+
+  notify:
+    needs: [lint-and-test, docker-build]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Notify CI status
+        run: |
+          if [ "${{ needs.docker-build.result }}" = "success" ]; then
+            echo "✅ CI pipeline successful!"
+          else
+            echo "❌ CI pipeline failed!"
+            exit 1
+          fi

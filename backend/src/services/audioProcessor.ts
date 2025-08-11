@@ -1,5 +1,5 @@
-import { OpenAIService } from './openai';
-import { db } from '../database/db';
+import { OpenAIService } from './openai.js';
+import { db } from '../database/db.js';
 
 export class AudioProcessor {
   private openaiService: OpenAIService;

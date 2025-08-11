@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { db } from './database/db';
-import { WSServer } from './websocket/wsServer';
+import { db } from './database/db.js';
+import { WSServer } from './websocket/wsServer.js';
 
 dotenv.config();
 

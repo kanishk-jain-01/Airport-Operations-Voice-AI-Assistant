@@ -6,6 +6,10 @@ export class AudioRecorder {
 
   async initialize(): Promise<void> {
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('getUserMedia is not supported. HTTPS is required for microphone access.');
+      }
+      
       this.stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,

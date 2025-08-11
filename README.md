@@ -4,7 +4,7 @@ A voice-enabled flight operations assistant that allows querying United Airlines
 
 ## Features
 
-- **Wake Word Detection**: Hands-free activation using Picovoice Porcupine (supports "Jarvis", "Alexa", "Hey Google")
+- **Wake Word Detection**: Hands-free activation using Web Speech API (supports "Jarvis", "Alexa", "Hey Google", "Okay Google")
 - **Speech-to-Text**: Real-time audio transcription using OpenAI Whisper
 - **Natural Language Processing**: Intent extraction and entity recognition using GPT-4o-mini
 - **Database Queries**: In-memory SQLite database for fast flight information retrieval
@@ -14,7 +14,7 @@ A voice-enabled flight operations assistant that allows querying United Airlines
 ## Architecture
 
 ### Frontend (React + TypeScript + Vite)
-- Wake word detection (Picovoice Porcupine)
+- Wake word detection (Web Speech API)
 - Audio capture and streaming via WebSocket
 - Modern UI with Tailwind CSS
 - Real-time status updates and debugging information
@@ -28,10 +28,34 @@ A voice-enabled flight operations assistant that allows querying United Airlines
 
 ## Setup
 
+### Quick Start
+
+For local development:
+```bash
+# Clone and setup
+git clone <your-repo-url>
+cd frontier-audio
+./scripts/setup-local.sh
+
+# Start development
+docker-compose up
+# OR
+cd backend && npm run dev &
+cd frontend && npm run dev
+```
+
+For production deployment to AWS:
+```bash
+# See DEPLOYMENT.md for complete guide
+./scripts/deploy.sh
+```
+
 ### Prerequisites
-- Node.js 18+
+- Node.js 20+
 - OpenAI API key
-- Picovoice access key (optional, for wake word detection)
+- Docker (for containerized deployment)
+- AWS CLI and Terraform (for cloud deployment)
+- Modern web browser with Web Speech API support (for wake word detection)
 - SQLite database file: `united_airlines_normalized (Gauntlet).db`
 
 ### Backend Setup
@@ -75,10 +99,7 @@ cd frontend
 npm install
 ```
 
-3. (Optional) Create a `.env` file for wake word detection:
-```bash
-VITE_PICOVOICE_ACCESS_KEY=your_picovoice_access_key_here
-```
+3. Wake word detection will work automatically with supported browsers (Chrome, Safari, Edge)
 
 4. Start the development server:
 ```bash
@@ -95,9 +116,10 @@ The frontend will run on http://localhost:5173
 3. Click the microphone button again to stop and process
 
 ### Wake Word (Optional)
-1. Enable wake word detection in the UI
-2. Say "Jarvis", "Alexa", or "Hey Google" to activate
+1. Wake word detection starts automatically if supported by your browser
+2. Say "Jarvis", "Alexa", "Hey Google", or "Okay Google" to activate
 3. The assistant will automatically start listening
+4. Ensure microphone permissions are granted for your browser
 
 ## Example Queries
 
@@ -167,10 +189,37 @@ npm run preview  # Preview production build
 - Chunked audio processing for real-time transcription
 - Parallel processing of STT and NLP when possible
 
+## Deployment
+
+This application supports both local development and cloud deployment to AWS.
+
+### Local Development
+- Docker Compose for easy local setup
+- Hot reload for both frontend and backend
+- Comprehensive setup script included
+
+### Production Deployment to AWS
+- **Infrastructure**: ECS Fargate with Application Load Balancer
+- **Container Registry**: Amazon ECR for Docker images  
+- **Monitoring**: CloudWatch for logs and metrics
+- **Scaling**: Auto-scaling based on CPU and memory
+- **Security**: VPC with private subnets, IAM roles, encrypted secrets
+- **CI/CD**: GitHub Actions for automated deployments
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete deployment guide including:
+- AWS infrastructure setup with Terraform
+- Docker containerization
+- GitHub Actions CI/CD pipeline
+- Monitoring and maintenance
+
+### Branch Strategy
+- `dev` branch: Development work, triggers CI pipeline
+- `main` branch: Production releases, triggers CI/CD with deployment
+
 ## Error Handling
 
 - Automatic WebSocket reconnection with exponential backoff
-- Graceful degradation when wake word detection unavailable
+- Graceful degradation when Web Speech API unavailable
 - Clear error messages in UI for debugging
 - Fallback responses for low-confidence intents
 

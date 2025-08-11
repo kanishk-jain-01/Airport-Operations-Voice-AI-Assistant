@@ -1,0 +1,31 @@
+# AWS Configuration
+aws_region = "us-east-1"
+environment = "production"
+project_name = "frontier-audio"
+
+# Network Configuration
+vpc_cidr = "10.0.0.0/16"
+public_subnet_cidrs = ["10.0.101.0/24", "10.0.102.0/24"]
+private_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]
+
+# SSL Certificate (Optional - leave empty if not using HTTPS)
+# certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
+certificate_arn = ""
+
+# Domain name (Optional - for Route53 setup)
+domain_name = ""
+
+# ECS Configuration
+backend_cpu = 256
+backend_memory = 512
+frontend_cpu = 256
+frontend_memory = 512
+
+# Auto Scaling
+min_capacity = 1
+max_capacity = 10
+desired_capacity = 2
+
+# Secrets
+openai_api_key = "your-openai-api-key-here"
+
